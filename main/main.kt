@@ -14,17 +14,17 @@ fun main() {
         val input = readMultiLineInput() ?: break
         if (input.isEmpty()) continue
 
-        try {
-            val scanner = Scanner(input)
-            val tokens = scanner.scanTokens()
 
-            val parser = Parser(tokens)
-            val program = parser.parseProgram()
+        val scanner = Scanner(input)
+        val tokens = scanner.scanTokens()
 
-            evaluator.executeProgram(program)
-        } catch (e: Exception) {
-            println("Error: ${e.message}")
-        }
+        val parser = Parser(tokens)
+        val program = parser.parseProgram()
+
+        evaluator.executeProgram(program)
+        // } catch (e: Exception) {
+        //     println("Error: ${e.message}")
+        // }
     }
 }
 

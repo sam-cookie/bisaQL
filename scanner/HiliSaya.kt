@@ -9,16 +9,13 @@ fun main() {
             println("Empty input")
         } else if (source.equals("humana")) break
         
-        try {
-            val scanner = Scanner(source) 
-            val tokens = scanner.scanTokens()
+
+        val scanner = Scanner(source) 
+        val tokens = scanner.scanTokens()
             
-            println("Tokens:")
-            for (token in tokens) {
-                println("  $token")
-            }
-        } catch (e: Exception) {
-            println("Error: ${e.message}")
+        println("Tokens:")
+        for (token in tokens) {
+            println("  $token")
         }
     }
 }

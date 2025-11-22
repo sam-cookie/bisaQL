@@ -3,13 +3,24 @@ import scanner.*
 
 class Parser(private val tokens: List<Token>) {
     private var current = 0
+    private var hadError = false
 
-    fun parseProgram(): Stmt.Program = Stmt.Program(parseStatements())
+    fun parseProgram(): Stmt.Program {
+        hadError = false
+        val statements = parseStatements()
+        return Stmt.Program(statements)
+    }
 
     private fun parseStatements(): Array<Stmt> {
         val statements = mutableListOf<Stmt>()
         while (!isAtEnd()) {
-            statements.add(statement())
+            val stmt = statement()
+            if (!hadError) {
+                statements.add(stmt)
+            } else {
+                // Error recovery: skip tokens until we find a statement boundary
+                synchronize()
+            }
         }
         return statements.toTypedArray()
     }
@@ -23,35 +34,63 @@ class Parser(private val tokens: List<Token>) {
 
     private fun blockStatement(): Stmt.Block {
         val stmts = parseBlockStatements()
-        consume(TokenType.TAPOS, "Dapat naay 'tapos' para matapos ang block bai.")
-        consume(TokenType.PERIOD, "Dapat naay period (.) sa katapusan sa block bai")
+        if (!hadError) {
+            if (consume(TokenType.TAPOS, "Dapat naay 'tapos' para matapos ang block bai.") == null) {
+                return Stmt.Block(emptyArray())
+            }
+            if (consume(TokenType.PERIOD, "Dapat naay period (.) sa katapusan sa block bai") == null) {
+                return Stmt.Block(emptyArray())
+            }
+        }
         return Stmt.Block(stmts)
     }
 
     private fun parseBlockStatements(): Array<Stmt> {
         val statements = mutableListOf<Stmt>()
         while (!check(TokenType.TAPOS) && !isAtEnd()) {
-            statements.add(statement())
+            val stmt = statement()
+            if (!hadError) {
+                statements.add(stmt)
+            } else {
+                synchronize()
+            }
         }
         return statements.toTypedArray()
     }
 
     private fun printStatement(): Stmt {
         val expr = expression()
-        consume(TokenType.PERIOD, "Dapat naay period (.) sa katapusan bai")
+        if (!hadError) {
+            if (consume(TokenType.PERIOD, "Dapat naay period (.) sa katapusan bai") == null) {
+                return Stmt.Print(Expr.Literal(null))
+            }
+        }
         return Stmt.Print(expr)
     }
 
     private fun varDeclaration(): Stmt {
         val name = consume(TokenType.IDENTIFIER, "Dapat naay variable name")
+        if (hadError || name == null) {
+            return Stmt.Var(Token(TokenType.IDENTIFIER, "ERROR", null, 0), null)
+        }
+        
         val initializer = if (match(TokenType.EQUALS)) expression() else null
-        consume(TokenType.PERIOD, "Dapat naay period (.) sa katapusan sa var declaration bai")
+        
+        if (!hadError) {
+            if (consume(TokenType.PERIOD, "Dapat naay period (.) sa katapusan sa var declaration bai") == null) {
+                return Stmt.Var(name, initializer)
+            }
+        }
         return Stmt.Var(name, initializer)
     }
 
     private fun expressionStatement(): Stmt {
         val expr = expression()
-        consume(TokenType.PERIOD, "Dapat naay period (.) sa katapusan sa expression bai")
+        if (!hadError) {
+            if (consume(TokenType.PERIOD, "Dapat naay period (.) sa katapusan sa expression bai") == null) {
+                return Stmt.ExprStmt(expr)
+            }
+        }
         return Stmt.ExprStmt(expr)
     }
 
@@ -141,12 +180,13 @@ class Parser(private val tokens: List<Token>) {
 
         if (match(TokenType.LEFT_PAREN)) {
             val expr = expression()
-            // Enhanced error message for unmatched parentheses
             if (!check(TokenType.RIGHT_PAREN)) {
                 reportError(peek(), "Wa nay ')' sa katapusan bai. Naay sobra nga '('.")
-                return Expr.Literal("ERROR") // Return error marker instead of null
+                return Expr.Literal("ERROR") 
             }
-            consume(TokenType.RIGHT_PAREN, "Dapat naay ')' sa katapusan bai.")
+            if (consume(TokenType.RIGHT_PAREN, "Dapat naay ')' sa katapusan bai.") == null) {
+                return Expr.Literal("ERROR")
+            }
             return Expr.Grouping(expr)
         }
 
@@ -155,7 +195,7 @@ class Parser(private val tokens: List<Token>) {
         }
 
         reportError(peek(), "Tarungi ang expression bai.")
-        return Expr.Literal("ERROR") // Return error marker instead of null
+        return Expr.Literal("ERROR") 
     }
 
     // helpers 
@@ -181,12 +221,29 @@ class Parser(private val tokens: List<Token>) {
     private fun previous(): Token = tokens[current - 1]
     private fun peekNext(): Token? = if (current + 1 < tokens.size) tokens[current + 1] else null
 
-    private fun consume(type: TokenType, message: String): Token {
-        if (check(type)) return advance()
-        throw RuntimeException("[Line ${peek().line}] Error: $message")
+    private fun consume(type: TokenType, message: String): Token? {
+        if (check(type)) {
+            return advance()
+        }
+        reportError(peek(), message)
+        return null
     }
 
     private fun reportError(token: Token, message: String) {
         println("[Line ${token.line}] Error sa '${token.lexeme}': $message")
+        hadError = true
+    }
+
+    private fun synchronize() {
+        advance() 
+        
+        while (!isAtEnd()) {
+            if (previous().type == TokenType.PERIOD) return // End of statement
+            
+            when (peek().type) {
+                TokenType.PRINT, TokenType.VAR, TokenType.SUGOD -> return
+                else -> advance()
+            }
+        }
     }
 }

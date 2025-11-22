@@ -15,19 +15,14 @@ fun main() {
         val trimmed = line.trim()
         if (trimmed.isEmpty()) continue
         if (trimmed.lowercase() == "humana") break
+        
+        val scanner = Scanner(line)
+        val tokens = scanner.scanTokens()
 
-        try {
-            // Scan tokens
-            val scanner = Scanner(line)
-            val tokens = scanner.scanTokens()
+        val parser = Parser(tokens)
+        val program = parser.parseProgram()
 
-            val parser = Parser(tokens)
-            val program = parser.parseProgram()
+        evaluator.executeProgram(program)
 
-            // Execute each statement
-            evaluator.executeProgram(program)
-        } catch (e: Exception) {
-            println("Error: ${e.message}")
-        }
     }
 }

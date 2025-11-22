@@ -242,6 +242,6 @@ class Evaluator(private val isReplMode: Boolean = false) {
     }
 
     private fun runtimeError(token: Token, message: String) {
-        println("[line ${token.line}] Error: $message")
+        println("[line ${token.line}] Runtime Error: $message")
     }
 }
