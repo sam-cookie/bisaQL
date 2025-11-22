@@ -4,7 +4,6 @@ import scanner.*
 class Parser(private val tokens: List<Token>) {
     private var current = 0
 
-    // Add this public method
     fun parseProgram(): Stmt.Program = Stmt.Program(parseStatements())
 
     private fun parseStatements(): Array<Stmt> {
@@ -22,16 +21,13 @@ class Parser(private val tokens: List<Token>) {
         else -> expressionStatement()
     }
 
-    // Single blockStatement function for SUGOD/TAPOS
     private fun blockStatement(): Stmt.Block {
-        // SUGOD is already consumed, now parse the block statements
         val stmts = parseBlockStatements()
         consume(TokenType.TAPOS, "Dapat naay 'tapos' para matapos ang block bai.")
         consume(TokenType.PERIOD, "Dapat naay period (.) sa katapusan sa block bai")
         return Stmt.Block(stmts)
     }
 
-    // Single parseBlockStatements function for TAPOS
     private fun parseBlockStatements(): Array<Stmt> {
         val statements = mutableListOf<Stmt>()
         while (!check(TokenType.TAPOS) && !isAtEnd()) {
@@ -40,7 +36,6 @@ class Parser(private val tokens: List<Token>) {
         return statements.toTypedArray()
     }
 
-    // single statements ends w periods 
     private fun printStatement(): Stmt {
         val expr = expression()
         consume(TokenType.PERIOD, "Dapat naay period (.) sa katapusan bai")
@@ -60,7 +55,6 @@ class Parser(private val tokens: List<Token>) {
         return Stmt.ExprStmt(expr)
     }
 
-    // expressions
     private fun expression(): Expr = assignment()
 
     private fun assignment(): Expr {
@@ -71,7 +65,6 @@ class Parser(private val tokens: List<Token>) {
             val value = assignment()
             
             if (expr is Expr.Variable) {
-                val name = expr.name
                 return Expr.Binary(expr, equals, value) 
             }
             
@@ -141,23 +134,28 @@ class Parser(private val tokens: List<Token>) {
         return primary()
     }
 
-    private fun primary(): Expr = when {
-        match(TokenType.NUMBER, TokenType.STRING, TokenType.TRUE, TokenType.FALSE, TokenType.NULL) ->
-            Expr.Literal(previous().literal)
+    private fun primary(): Expr {
+        if (match(TokenType.NUMBER, TokenType.STRING, TokenType.TRUE, TokenType.FALSE, TokenType.NULL)) {
+            return Expr.Literal(previous().literal)
+        }
 
-        match(TokenType.LEFT_PAREN) -> {
+        if (match(TokenType.LEFT_PAREN)) {
             val expr = expression()
+            // Enhanced error message for unmatched parentheses
+            if (!check(TokenType.RIGHT_PAREN)) {
+                reportError(peek(), "Wa nay ')' sa katapusan bai. Naay sobra nga '('.")
+                return Expr.Literal("ERROR") // Return error marker instead of null
+            }
             consume(TokenType.RIGHT_PAREN, "Dapat naay ')' sa katapusan bai.")
-            Expr.Grouping(expr)
+            return Expr.Grouping(expr)
         }
 
-        match(TokenType.IDENTIFIER) ->
-            Expr.Variable(previous())
-
-        else -> {
-            reportError(peek(), "Tarungi ang expression bai.")
-            Expr.Literal("nil")
+        if (match(TokenType.IDENTIFIER)) {
+            return Expr.Variable(previous())
         }
+
+        reportError(peek(), "Tarungi ang expression bai.")
+        return Expr.Literal("ERROR") // Return error marker instead of null
     }
 
     // helpers 

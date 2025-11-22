@@ -58,16 +58,16 @@ class Evaluator(private val isReplMode: Boolean = false) {
 
             is Stmt.Print -> {
                 val value = evaluate(stmt.expression)
-                println(valueToString(value))
+                if (value != null) {
+                    println(valueToString(value))
+                }
             }
 
             is Stmt.ExprStmt -> {
                 val result = evaluate(stmt.expression)
-                // REPL MODE: Auto-print expression results
-                if (isReplMode) {
+                if (isReplMode && result != null) {
                     println(valueToString(result))
                 }
-                // In script mode, the result is silently discarded
             }
 
             is Stmt.Block -> {
@@ -93,23 +93,39 @@ class Evaluator(private val isReplMode: Boolean = false) {
         if (expr == null) return null
         
         val result = when (expr) {
-            is Expr.Literal -> expr.value
+            is Expr.Literal -> {
+                if (expr.value == "ERROR") {
+                    return null 
+                }
+                expr.value
+            }
             is Expr.Grouping -> evaluate(expr.expression)
             is Expr.Unary -> evaluateUnary(expr)
             is Expr.Binary -> evaluateBinary(expr)
             is Expr.Variable -> environment.get(expr.name.lexeme)
         }
         
+        // checker null is in error 
         return when (result) {
             true -> "tuod"
             false -> "atik" 
-            null -> "waay"
+            null -> if (isLegitimateNull(expr)) "waay" else null
             else -> result
+        }
+    }
+
+    private fun isLegitimateNull(expr: Expr): Boolean {
+        // return waay for literal null values, not sa errors
+        return when (expr) {
+            is Expr.Literal -> expr.value == null
+            else -> false
         }
     }
 
     private fun evaluateUnary(expr: Expr.Unary): Any? {
         val right = evaluate(expr.right)
+        if (right == null) return null
+        
         return when (expr.operator.type) {
             TokenType.MINUS -> {
                 if (right is Number) -right.toDouble()
@@ -126,13 +142,15 @@ class Evaluator(private val isReplMode: Boolean = false) {
     private fun evaluateBinary(expr: Expr.Binary): Any? {
         val left = evaluate(expr.left)
         val right = evaluate(expr.right)
+        
+        if (left == null || right == null) return null
 
         return when (expr.operator.type) {
             TokenType.PLUS -> {
                 if (left is Number && right is Number) left.toDouble() + right.toDouble()
                 else if (left is String && right is String) left + right
                 else {
-                    runtimeError(expr.operator, "Ang '+' kay para lang sa numbers ug strings bai.")
+                    runtimeError(expr.operator, "Ang '+' kay para lang if ang duha kay number or ang duha kay string.")
                     null
                 }
             }
@@ -224,6 +242,6 @@ class Evaluator(private val isReplMode: Boolean = false) {
     }
 
     private fun runtimeError(token: Token, message: String) {
-        println("[line ${token.line}] Error bala: $message")
+        println("[line ${token.line}] Error: $message")
     }
 }

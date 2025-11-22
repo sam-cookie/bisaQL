@@ -1,5 +1,4 @@
 package Evaluator
-
 import parser.*
 import scanner.*
 

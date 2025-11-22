@@ -10,7 +10,7 @@ fun main() {
         } else if (source.equals("humana")) break
         
         try {
-            val scanner = Scanner(source) // Remove extra parameters
+            val scanner = Scanner(source) 
             val tokens = scanner.scanTokens()
             
             println("Tokens:")
