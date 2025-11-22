@@ -103,8 +103,15 @@ class Evaluator(private val isReplMode: Boolean = false) {
             is Expr.Unary -> evaluateUnary(expr)
             is Expr.Binary -> evaluateBinary(expr)
             is Expr.Variable -> environment.get(expr.name.lexeme)
+            is Expr.Assign -> { 
+                val value = evaluate(expr.value)
+                if (value != null) {
+                    environment.assign(expr.name.lexeme, value)
+                } else {
+                    null
+                }
+            }
         }
-        
         // checker null is in error 
         return when (result) {
             true -> "tuod"
@@ -186,6 +193,19 @@ class Evaluator(private val isReplMode: Boolean = false) {
                     null
                 }
             }
+
+            TokenType.MODULO -> {
+                if (left is Number && right is Number) {
+                    if (right.toDouble() == 0.0) {
+                        runtimeError(expr.operator, "Bawal mag modulo by 0 bai. Tadlong bala!")
+                        null
+                    } else left.toDouble() % right.toDouble()
+                } else {
+                    runtimeError(expr.operator, "Di ni pwede bai! Number dapat ang operand sa modulo")
+                    null
+                }
+            }
+
             TokenType.GREATER_THAN ->
                 compareNumbers(expr.operator, left, right) { l, r -> l > r }
             TokenType.GREATER_THAN_EQUAL ->

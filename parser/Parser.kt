@@ -18,7 +18,6 @@ class Parser(private val tokens: List<Token>) {
             if (!hadError) {
                 statements.add(stmt)
             } else {
-                // Error recovery: skip tokens until we find a statement boundary
                 synchronize()
             }
         }
@@ -104,7 +103,7 @@ class Parser(private val tokens: List<Token>) {
             val value = assignment()
             
             if (expr is Expr.Variable) {
-                return Expr.Binary(expr, equals, value) 
+                return Expr.Assign(expr.name, value)  
             }
             
             reportError(equals, "Invalid assignment target bai.")
@@ -238,7 +237,7 @@ class Parser(private val tokens: List<Token>) {
         advance() 
         
         while (!isAtEnd()) {
-            if (previous().type == TokenType.PERIOD) return // End of statement
+            if (previous().type == TokenType.PERIOD) return // end of statement
             
             when (peek().type) {
                 TokenType.PRINT, TokenType.VAR, TokenType.SUGOD -> return

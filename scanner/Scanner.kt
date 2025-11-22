@@ -79,7 +79,6 @@ class Scanner(
                 length++
             }
 
-            // FIXED: Remove the invalid character checking - let the main scanner loop handle it
             val lexeme = source.substring(index, index + length)
             val type = keywords[lexeme] ?: TokenType.IDENTIFIER
             return type to length

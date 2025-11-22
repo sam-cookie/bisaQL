@@ -48,6 +48,7 @@ class AstPrinter {
 
         is Expr.Grouping -> "( ${astToString(expr.expression)} )"
         is Expr.Variable -> expr.name.lexeme
+        is Expr.Assign -> "(${expr.name.lexeme} = ${astToString(expr.value)})"
     }
 
     // print a statement 
