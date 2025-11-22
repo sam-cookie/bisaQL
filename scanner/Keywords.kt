@@ -13,5 +13,7 @@ val keywords = mapOf(
     "tuod" to TokenType.TRUE,
     "atik" to TokenType.FALSE,
     "waay" to TokenType.NULL,
-    "sumpay" to TokenType.SUMPAY
+    "sumpay" to TokenType.SUMPAY,
+    "sugod" to TokenType.SUGOD,   
+    "tapos" to TokenType.TAPOS   
 )

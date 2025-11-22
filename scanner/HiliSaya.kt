@@ -1,24 +1,24 @@
-
 package scanner
 
 fun main() {
     while (true) {
-        println("Check your input: ")
+        println("Scanner Test - Enter input: ")
         val source = readLine() ?: ""
 
-        val tokens = mutableListOf<Token>()
-        var index = 0
-        var line = 1
-        var length = 0
-
         if (source.equals("")) {
-            println("[Line $line] Error at end: Expect expression")
+            println("Empty input")
         } else if (source.equals("humana")) break
         
-
-        val scanner = Scanner(source, index, line, length)
-        scanner.scanOtherCharacters(source, index, line, length)
-
-        
+        try {
+            val scanner = Scanner(source) // Remove extra parameters
+            val tokens = scanner.scanTokens()
+            
+            println("Tokens:")
+            for (token in tokens) {
+                println("  $token")
+            }
+        } catch (e: Exception) {
+            println("Error: ${e.message}")
+        }
     }
 }

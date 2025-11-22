@@ -3,10 +3,9 @@ package scanner
 class Scanner(
     private val source: String,
     private var index: Int = 0,
-    private var line: Int = 1,
-    private var length: Int = 0
+    private var line: Int = 1
 ) {
-    
+
     private val tokens = mutableListOf<Token>()
 
     fun scanToken(source: String, index: Int): Pair<TokenType?, Int> {
@@ -14,6 +13,7 @@ class Scanner(
         val next = if (index + 1 < source.length) source[index + 1] else '\u0000'
 
         return when (c) {
+            '.' -> TokenType.PERIOD to 1
             '(' -> TokenType.LEFT_PAREN to 1
             ')' -> TokenType.RIGHT_PAREN to 1
             '{' -> TokenType.LEFT_BRACE to 1
@@ -42,20 +42,16 @@ class Scanner(
         // number literal
         if (c.isDigit()) {
             var length = 1
-            while (index + length < source.length && source[index + length].isDigit()) {
-                length++
-            }
-
+            while (index + length < source.length && source[index + length].isDigit()) length++
             if (index + length < source.length && source[index + length] == '.') {
                 if (index + length + 1 < source.length && source[index + length + 1].isDigit()) {
                     length++
-                    while (index + length < source.length && source[index + length].isDigit()) {
-                        length++
-                    }
+                    while (index + length < source.length && source[index + length].isDigit()) length++
                 }
             }
 
             val numStart = source.substring(index, index + length)
+            // FIXED: Only check for identifier characters immediately after number
             if (index + length < source.length && (source[index + length].isLetter() || source[index + length] == '_')) {
                 println("[Line $line] Mali ang starting number nga '$numStart' sa identifier")
             }
@@ -66,15 +62,12 @@ class Scanner(
         // string literal
         if (c == '"') {
             var length = 1
-            while (index + length < source.length && source[index + length] != '"') {
-                length++
-            }
-
+            while (index + length < source.length && source[index + length] != '"') length++
             if (index + length < source.length) {
                 length++
                 return TokenType.STRING to length
             } else {
-                println("""[Line $line] Error sa katapusan: Dapat naay '"' sa katapusan bai.""")
+                println("[Line $line] Error sa katapusan: Dapat naay '\"' sa katapusan bai.")
                 return null to length
             }
         }
@@ -84,15 +77,9 @@ class Scanner(
             var length = 1
             while (index + length < source.length && (source[index + length].isLetterOrDigit() || source[index + length] == '_')) {
                 length++
-
-                if (index + length < source.length) {
-                    val specialChar = source[index + length]
-                    if (!specialChar.isWhitespace() && !specialChar.isLetterOrDigit() && specialChar != '_' && specialChar != '"') {
-                        println("[Line $line] bawal ang '$specialChar' sa identifiers bai")
-                    }
-                }
             }
 
+            // FIXED: Remove the invalid character checking - let the main scanner loop handle it
             val lexeme = source.substring(index, index + length)
             val type = keywords[lexeme] ?: TokenType.IDENTIFIER
             return type to length
@@ -101,63 +88,72 @@ class Scanner(
         return null to 1
     }
 
-    fun scanOtherCharacters(source: String, startIndex: Int, startLine: Int, length: Int) {
+    fun scanOtherCharacters(source: String, startIndex: Int, startLine: Int) {
         var index = startIndex
         var line = startLine
-        tokens.clear() // reset before scanning
+        tokens.clear()
 
         while (index < source.length) {
             val c = source[index]
 
-            if (c == ' ' || c == '\r' || c == '\t') {
+            // Handle Windows line endings: \r\n
+            if (c == '\r' && index + 1 < source.length && source[index + 1] == '\n') {
+                // Skip the \r and process the \n on next iteration
                 index++
                 continue
             }
 
-            if (c == '\n') {
-                line++
+            // Skip whitespace (including newlines since we're using periods)
+            if (c == ' ' || c == '\r' || c == '\t' || c == '\n') {
                 index++
                 continue
             }
 
+            // PERIOD as statement terminator
+            if (c == '.') {
+                tokens.add(Token(TokenType.PERIOD, ".", null, line))
+                index++
+                continue
+            }
+
+            // Block comments
             if (index + 2 < source.length && source.substring(index, index + 2) == "/*") {
                 val closing = source.indexOf("*/", index + 2)
                 val endComment = if (closing != -1) closing + 2 else source.length
                 val lexeme = source.substring(index, endComment)
                 line += lexeme.count { it == '\n' }
                 index = endComment
-                if (closing == -1) {
-                    println("[Line $line] Error sa katapusan: Dapat naay '*/' para matapos ang comment bai.")
-                }
+                if (closing == -1) println("[Line $line] Error sa katapusan: Dapat naay '*/' para matapos ang comment bai.")
                 continue
             }
 
+            // Line comments
             if (index + 1 < source.length && source.substring(index, index + 2) == "//") {
-                val closing = source.indexOf("//", index + 2)
-                val endComment = if (closing != -1) closing + 2 else source.length
-                index = endComment
+                val closing = source.indexOf("\n", index + 2)
+                index = if (closing != -1) closing else source.length
                 continue
             }
 
+            // Literals (numbers, strings, identifiers, keywords)
             if (isLiteral(source, index, line, tokens)) {
                 val (_, litLen) = scanLiterals(source, index, line)
                 index += litLen
                 continue
             }
 
+            // Symbols (operators, punctuation)
             if (isSymbol(source, index, line, tokens)) {
                 val (_, symLen) = scanToken(source, index)
                 index += symLen
                 continue
             }
 
-            if (c != '"') {
-                println("[Line $line] Mali ang '$c' nga character bai.")
-            }
-
+            // Unknown character
+            println("[Line $line] Mali ang '$c' nga character bai.")
             index++
         }
 
+        // End of file
         tokens.add(Token(TokenType.EOF, "", null, line))
     }
 
@@ -165,18 +161,14 @@ class Scanner(
         val (litType, litLen) = scanLiterals(source, index, line)
         if (litType != null) {
             val lexeme = source.substring(index, index + litLen)
-           val literal = when (litType) {
-            TokenType.NUMBER ->
-                if (lexeme.contains(".")) lexeme.toDouble()
-                else lexeme.toInt()
-
-            TokenType.STRING -> lexeme.substring(1, lexeme.length - 1)
-            TokenType.TRUE -> true
-            TokenType.FALSE -> false
-            TokenType.NULL -> null
-            else -> null
-        }
-
+            val literal = when (litType) {
+                TokenType.NUMBER -> if (lexeme.contains(".")) lexeme.toDouble() else lexeme.toInt()
+                TokenType.STRING -> lexeme.substring(1, lexeme.length - 1)
+                TokenType.TRUE -> true
+                TokenType.FALSE -> false
+                TokenType.NULL -> null
+                else -> null
+            }
             tokens.add(Token(litType, lexeme, literal, line))
             return true
         }
@@ -195,7 +187,7 @@ class Scanner(
 
     fun scanTokens(): List<Token> {
         tokens.clear()
-        scanOtherCharacters(source, 0, 1, source.length)
+        scanOtherCharacters(source, 0, 1)
         return tokens
     }
 }

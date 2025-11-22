@@ -2,29 +2,32 @@ package Evaluator
 import parser.*
 import scanner.*
 
-
-// need to have class
-// printing should not be inside the main function
 fun main() {
-    val evaluator = Evaluator()
-    val printer = EvaluatorPrinter()
+    // for evaluations
+    val evaluator = Evaluator(isReplMode = true)
 
-    print("Hilisaya Programming Language")
-    print("Type 'humana' to exit.\n")
+    println("Hilisaya Programming Language - REPL Mode")
+    println("Type 'humana' to exit.")
 
     while (true) {
         print("> ")
         val line = readLine() ?: break
-        if (line.trim().isEmpty()) continue
-        if (line.trim().lowercase() == "humana") break
+        val trimmed = line.trim()
+        if (trimmed.isEmpty()) continue
+        if (trimmed.lowercase() == "humana") break
 
-        val scanner = Scanner(line)
-        val tokens = scanner.scanTokens()
+        try {
+            // Scan tokens
+            val scanner = Scanner(line)
+            val tokens = scanner.scanTokens()
 
-        val parser = Parser(tokens)
-        val expression = parser.parse()
+            val parser = Parser(tokens)
+            val program = parser.parseProgram()
 
-        val result = evaluator.evaluate(expression)
-        printer.printResult(result)
+            // Execute each statement
+            evaluator.executeProgram(program)
+        } catch (e: Exception) {
+            println("Error: ${e.message}")
+        }
     }
 }

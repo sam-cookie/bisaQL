@@ -1,25 +1,28 @@
 package parser
 import scanner.*
-import parser.*
 
 fun main() {
-    println(" HiliSaya Parser  ")
+    println(" HiliSaya Parser Test ")
 
     while (true) {
         print("> ")
         val line = readlnOrNull() ?: break
         if (line.trim() == "humana") break 
-        if (line.isBlank()) continue // pwede mn break din dayon for eof
+        if (line.isBlank()) continue
 
-        val scanner = Scanner(line)
-        val tokens = scanner.scanTokens()
+        try {
+            val scanner = Scanner(line)
+            val tokens = scanner.scanTokens()
 
+            val parser = Parser(tokens)
+            val program = parser.parseProgram()
 
-        val parser = Parser(tokens)
-        val expression = parser.parse()
-
-        var printer = AstPrinter()
-        printer.print(expression)
-        // printAst(expression)
+            val printer = AstPrinter()
+            for (stmt in program.statements) { 
+                printer.printStmt(stmt)
+            }
+        } catch (e: Exception) {
+            println("Error: ${e.message}")
+        }
     }
 }
