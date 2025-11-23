@@ -1,6 +1,9 @@
+// ENVIRONMENT + EVALUATOR (FULLY COMMENTED)
+
 package Evaluator
 import parser.*
 import scanner.*
+
 
 class Environment(val enclosing: Environment? = null) {
     private val values = mutableMapOf<String, Any?>()
@@ -36,104 +39,107 @@ class Environment(val enclosing: Environment? = null) {
 class Evaluator(private val isReplMode: Boolean = false) {
     private var environment = Environment()
 
-    // execute the whole program
+    // Execute every statement in a program
     fun executeProgram(program: Stmt.Program) {
-        for (stmt in program.statements) {
-            execute(stmt)
-        }
+        for (stmt in program.statements) execute(stmt)
     }
 
-    // STATEMENTS
+    // Execute a single statement
     fun execute(stmt: Stmt) {
         when (stmt) {
+
+            // VARIABLE DECLARATION: bar x = ...
             is Stmt.Var -> {
                 val value = stmt.initializer?.let { evaluate(it) } ?: "waay"
                 environment.define(stmt.name.lexeme, value)
             }
 
+            // VARIABLE ASSIGNMENT: x = ...
             is Stmt.Assign -> {
                 val value = evaluate(stmt.value)
                 environment.assign(stmt.name.lexeme, value)
             }
 
+            // PRINT STATEMENT: gawas ...
             is Stmt.Print -> {
                 val value = evaluate(stmt.expression)
-                if (value != null) {
-                    println(valueToString(value))
-                }
+                if (value != null) println(valueToString(value))
             }
 
+            // EXPRESSION STATEMENT
             is Stmt.ExprStmt -> {
                 val result = evaluate(stmt.expression)
-                if (isReplMode && result != null) {
-                    println(valueToString(result))
-                }
+                if (isReplMode && result != null) println(valueToString(result))
             }
 
-            is Stmt.Block -> {
-                executeBlock(stmt.statements, Environment(environment))
-            }
+            // BLOCK STATEMENT: handles new scope
+            is Stmt.Block -> executeBlock(stmt.statements, Environment(environment))
 
+            // PROGRAM again inside a program
             is Stmt.Program -> executeProgram(stmt)
         }
     }
 
+    // Executes a block with a new child environment
     fun executeBlock(statements: Array<Stmt>, blockEnv: Environment) {
-        val previous = environment
-        environment = blockEnv
+        val previous = environment // save current
+        environment = blockEnv     // switch to block
         try {
             for (s in statements) execute(s)
         } finally {
-            environment = previous
+            environment = previous // restore
         }
     }
 
-    // EXPRESSIONS
+    // Evaluate an expression and return its value
     fun evaluate(expr: Expr?): Any? {
         if (expr == null) return null
-        
+
         val result = when (expr) {
+
+            // Literal: numbers, strings, tuod/atik, waay
             is Expr.Literal -> {
-                if (expr.value == "ERROR") {
-                    return null 
-                }
+                if (expr.value == "ERROR") return null
                 expr.value
             }
+
             is Expr.Grouping -> evaluate(expr.expression)
+
             is Expr.Unary -> evaluateUnary(expr)
+
             is Expr.Binary -> evaluateBinary(expr)
+
             is Expr.Variable -> environment.get(expr.name.lexeme)
-            is Expr.Assign -> { 
+
+            is Expr.Assign -> {
                 val value = evaluate(expr.value)
-                if (value != null) {
-                    environment.assign(expr.name.lexeme, value)
-                } else {
-                    null
-                }
+                if (value != null) environment.assign(expr.name.lexeme, value)
+                else null
             }
         }
-        // checker null is in error 
+
+        // convert kotlin true/false/null to tuod/atik/waay
         return when (result) {
             true -> "tuod"
-            false -> "atik" 
+            false -> "atik"
             null -> if (isLegitimateNull(expr)) "waay" else null
             else -> result
         }
     }
 
+    // checks if it really is null literal or error null
     private fun isLegitimateNull(expr: Expr): Boolean {
-        // return waay for literal null values, not sa errors
-        return when (expr) {
-            is Expr.Literal -> expr.value == null
-            else -> false
-        }
+        return expr is Expr.Literal && expr.value == null
     }
 
+    // Unary operator evaluator
     private fun evaluateUnary(expr: Expr.Unary): Any? {
         val right = evaluate(expr.right)
         if (right == null) return null
-        
+
         return when (expr.operator.type) {
+
+            // NEGATION: -x
             TokenType.MINUS -> {
                 if (right is Number) -right.toDouble()
                 else {
@@ -141,26 +147,34 @@ class Evaluator(private val isReplMode: Boolean = false) {
                     null
                 }
             }
+
+            // LOGICAL NOT: !x
             TokenType.NOT -> !isTruthy(right)
+
             else -> null
         }
     }
 
+
+    // Binary operator evaluator
     private fun evaluateBinary(expr: Expr.Binary): Any? {
         val left = evaluate(expr.left)
         val right = evaluate(expr.right)
-        
+
+        // null on either side means runtime failure
         if (left == null || right == null) return null
 
         return when (expr.operator.type) {
+
             TokenType.PLUS -> {
                 if (left is Number && right is Number) left.toDouble() + right.toDouble()
-                else if (left is String && right is String) left + right
+                // else if (left is String && right is String) left + right
                 else {
-                    runtimeError(expr.operator, "Ang '+' kay para lang if ang duha kay number or ang duha kay string.")
+                    runtimeError(expr.operator, "Ang '+' kay para lang if ang duha kay number or duha kay string.")
                     null
                 }
             }
+
             TokenType.MINUS -> {
                 if (left is Number && right is Number) left.toDouble() - right.toDouble()
                 else {
@@ -168,6 +182,7 @@ class Evaluator(private val isReplMode: Boolean = false) {
                     null
                 }
             }
+
             TokenType.TIMES -> {
                 if (left is Number && right is Number) left.toDouble() * right.toDouble()
                 else {
@@ -175,10 +190,11 @@ class Evaluator(private val isReplMode: Boolean = false) {
                     null
                 }
             }
+
             TokenType.DIVIDE -> {
                 if (left is Number && right is Number) {
                     if (right.toDouble() == 0.0) {
-                        runtimeError(expr.operator, "Bawal magdivide by 0 bai. Tadlong bala!")
+                        runtimeError(expr.operator, "Bawal magdivide by 0 bai.")
                         null
                     } else left.toDouble() / right.toDouble()
                 } else {
@@ -186,6 +202,8 @@ class Evaluator(private val isReplMode: Boolean = false) {
                     null
                 }
             }
+
+            // string concatenation
             TokenType.SUMPAY -> {
                 if (left is String && right is String) left + right
                 else {
@@ -194,32 +212,33 @@ class Evaluator(private val isReplMode: Boolean = false) {
                 }
             }
 
+            // MODULO
             TokenType.MODULO -> {
                 if (left is Number && right is Number) {
                     if (right.toDouble() == 0.0) {
-                        runtimeError(expr.operator, "Bawal mag modulo by 0 bai. Tadlong bala!")
+                        runtimeError(expr.operator, "Bawal mag modulo by 0 bai.")
                         null
                     } else left.toDouble() % right.toDouble()
                 } else {
-                    runtimeError(expr.operator, "Di ni pwede bai! Number dapat ang operand sa modulo")
+                    runtimeError(expr.operator, "Number dapat ang operand sa modulo")
                     null
                 }
             }
 
-            TokenType.GREATER_THAN ->
-                compareNumbers(expr.operator, left, right) { l, r -> l > r }
-            TokenType.GREATER_THAN_EQUAL ->
-                compareNumbers(expr.operator, left, right) { l, r -> l >= r }
-            TokenType.LESS_THAN ->
-                compareNumbers(expr.operator, left, right) { l, r -> l < r }
-            TokenType.LESS_THAN_EQUAL ->
-                compareNumbers(expr.operator, left, right) { l, r -> l <= r }
+            // Comparisons
+            TokenType.GREATER_THAN -> compareNumbers(expr.operator, left, right) { a, b -> a > b }
+            TokenType.GREATER_THAN_EQUAL -> compareNumbers(expr.operator, left, right) { a, b -> a >= b }
+            TokenType.LESS_THAN -> compareNumbers(expr.operator, left, right) { a, b -> a < b }
+            TokenType.LESS_THAN_EQUAL -> compareNumbers(expr.operator, left, right) { a, b -> a <= b }
+
             TokenType.EQUALTO -> isEqual(left, right)
             TokenType.NOT_EQUAL -> !isEqual(left, right)
+
             else -> null
         }
     }
 
+    // helper for numeric comparisons
     private fun compareNumbers(
         operator: Token,
         left: Any?,
@@ -234,6 +253,7 @@ class Evaluator(private val isReplMode: Boolean = false) {
         }
     }
 
+    // truthfullness check
     private fun isTruthy(value: Any?): Boolean {
         return when (value) {
             null -> false
