@@ -1,0 +1,19 @@
+bar greeting = "maayong adlaw, ".
+bar ngalan = "kalibutan".
+
+gawas greeting sumpay ngalan.
+
+bar x = 10.
+bar y = 20.
+
+sugod
+	bar x = 5. // shadows outer x
+	gawas "inner x: " + y.
+	gawas "Outer y: " + y. 
+tapos.
+
+gawas "Outer x: " + x.
+
+//reassignment
+x = x + y.
+gawas "x + y = " + x. 

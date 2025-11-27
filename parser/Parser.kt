@@ -11,18 +11,16 @@ class Parser(private val tokens: List<Token>) {
         return Stmt.Program(statements)
     }
 
-    private fun parseStatements(): Array<Stmt> {
+    private fun parseStatements(): List<Stmt> {
         val statements = mutableListOf<Stmt>()
         while (!isAtEnd()) {
             val stmt = statement()
-            if (!hadError) {
-                statements.add(stmt)
-            } else {
-                synchronize()
-            }
+            if (!hadError) statements.add(stmt)
+            else synchronize()
         }
-        return statements.toTypedArray()
+        return statements
     }
+
     
     private fun statement(): Stmt = when {
         match(TokenType.PRINT) -> printStatement()
@@ -35,27 +33,25 @@ class Parser(private val tokens: List<Token>) {
         val stmts = parseBlockStatements()
         if (!hadError) {
             if (consume(TokenType.TAPOS, "Dapat naay 'tapos' para matapos ang block bai.") == null) {
-                return Stmt.Block(emptyArray())
+               return Stmt.Block(emptyList())
             }
             if (consume(TokenType.PERIOD, "Dapat naay period (.) sa katapusan sa block bai") == null) {
-                return Stmt.Block(emptyArray())
+               return Stmt.Block(emptyList())
             }
         }
         return Stmt.Block(stmts)
     }
 
-    private fun parseBlockStatements(): Array<Stmt> {
+    private fun parseBlockStatements(): List<Stmt> {
         val statements = mutableListOf<Stmt>()
         while (!check(TokenType.TAPOS) && !isAtEnd()) {
             val stmt = statement()
-            if (!hadError) {
-                statements.add(stmt)
-            } else {
-                synchronize()
-            }
+            if (!hadError) statements.add(stmt)
+            else synchronize()
         }
-        return statements.toTypedArray()
+        return statements
     }
+
 
     private fun printStatement(): Stmt {
         val expr = expression()
