@@ -4,9 +4,6 @@ import java.io.File
 import scanner.Scanner
 import parser.Parser
 import evaluator.Evaluator
-import errorhandling.HiliSayaError
-import errorhandling.ScanError
-import errorhandling.ParseError
 import errorhandling.RuntimeError
 
 fun main(args: Array<String>) {
@@ -21,27 +18,22 @@ fun main(args: Array<String>) {
             val source = File(path).readText()
 
             val scanner = Scanner(source)
-            val tokens = scanner.scanTokens()      
+            val tokens = scanner.scanTokens()
 
             val parser = Parser(tokens)
-            val program = parser.parseProgram()   
+            val program = parser.parseProgram()
 
-            evaluator.executeProgram(program)     
+            evaluator.executeProgram(program)
 
-        } catch (e: ScanError) {
-            println("[Line ${e.line}] Scan Error: ${e.message}")
-        } catch (e: ParseError) {
-            println("[Line ${e.line}] Parse Error: ${e.message}")
         } catch (e: RuntimeError) {
             println("[Line ${e.line}] Runtime Error: ${e.message}")
         } catch (e: Exception) {
-            println("[Runtime error] Di mabasa ang file: $path")
+            println("[Wa naexpect na error] ${e.message}")
         }
 
         return
     }
 
-    // script
     println("Welcome to HiliSaya Interpreter!")
     println("Type 'humana' to exit.")
 
@@ -51,21 +43,17 @@ fun main(args: Array<String>) {
 
         try {
             val scanner = Scanner(input)
-            val tokens = scanner.scanTokens()     
+            val tokens = scanner.scanTokens()
 
             val parser = Parser(tokens)
-            val program = parser.parseProgram()    
+            val program = parser.parseProgram()
 
-            evaluator.executeProgram(program)      
+            evaluator.executeProgram(program)
 
-        } catch (e: ScanError) {
-            println("[Line ${e.line}] Scan Error: ${e.message}")
-        } catch (e: ParseError) {
-            println("[Line ${e.line}] Parse Error: ${e.message}")
         } catch (e: RuntimeError) {
             println("[Line ${e.line}] Runtime Error: ${e.message}")
         } catch (e: Exception) {
-            println("[Unexpected error] ${e.message}")
+            println("[Wa naexpect na error] ${e.message}")
         }
     }
 }

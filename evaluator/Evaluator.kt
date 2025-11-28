@@ -81,8 +81,12 @@ class Evaluator {
         val right = evaluate(expr.right)
 
         return when (expr.operator.type) {
-            TokenType.PLUS -> if (left is Number && right is Number) left.toDouble() + right.toDouble()
-                              else valueToString(left) + valueToString(right)
+           TokenType.PLUS -> when {
+                left is Number && right is Number -> left.toDouble() + right.toDouble()
+                left == null || right == null -> throw RuntimeError("Wa pwede ang null sa addition", expr.operator.line)
+                else -> valueToString(left) + valueToString(right)
+            }
+
             TokenType.MINUS -> checkNumbers(left, right, expr.operator) { a, b -> a - b }
             TokenType.TIMES -> checkNumbers(left, right, expr.operator) { a, b -> a * b }
             TokenType.DIVIDE -> checkNumbers(left, right, expr.operator) { a, b ->

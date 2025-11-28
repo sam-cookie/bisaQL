@@ -1,6 +1,8 @@
 package parser
+
 import scanner.*
-import errorhandling.ParseError
+import errorhandling.HiliSayaError
+import errorhandling.RuntimeError
 
 class Parser(private val tokens: List<Token>) {
     private var current = 0
@@ -13,7 +15,7 @@ class Parser(private val tokens: List<Token>) {
     private fun parseStatements(): List<Stmt> {
         val statements = mutableListOf<Stmt>()
         while (!isAtEnd()) {
-            statements.add(statement())  // let ParseError propagate
+            statements.add(statement())
         }
         return statements
     }
@@ -43,12 +45,11 @@ class Parser(private val tokens: List<Token>) {
     private fun printStatement(): Stmt {
         val expr = expression()
         if (check(TokenType.RIGHT_PAREN)) {
-            throw ParseError("Dili balanced ang parentheses bai.", peek().line)
+            throw RuntimeError("Dili balanced ang parentheses bai.", peek().line)
         }
         consume(TokenType.PERIOD, "Dapat naay period (.) sa katapusan bai")
         return Stmt.Print(expr)
     }
-
 
     private fun varDeclaration(): Stmt {
         val name = consume(TokenType.IDENTIFIER, "Dapat naay variable name")
@@ -61,20 +62,8 @@ class Parser(private val tokens: List<Token>) {
         val expr = expression()
 
         if (check(TokenType.RIGHT_PAREN)) {
-            throw ParseError("Dili balanced ang parentheses bai.", peek().line)
+            throw RuntimeError("Dili balanced ang parentheses bai.", peek().line)
         }
-
-        // var openParens = 0
-        // for (i in current until tokens.size) {
-        //     when (tokens[i].type) {
-        //         TokenType.LEFT_PAREN -> openParens++
-        //         TokenType.RIGHT_PAREN -> openParens--
-        //         else -> {}
-        //     }
-        //     if (openParens < 0) {
-        //         throw ParseError("Dili balanced ang parentheses bai.", tokens[i].line)
-        //     }
-        // }
 
         consume(TokenType.PERIOD, "Dapat naay period (.) sa katapusan sa expression bai")
         return Stmt.ExprStmt(expr)
@@ -88,7 +77,7 @@ class Parser(private val tokens: List<Token>) {
             val equals = previous()
             val value = assignment()
             if (expr is Expr.Variable) return Expr.Assign(expr.name, value)
-            throw ParseError("Invalid assignment target bai.", equals.line)
+            throw RuntimeError("Invalid assignment target bai.", equals.line)
         }
         return expr
     }
@@ -105,8 +94,11 @@ class Parser(private val tokens: List<Token>) {
 
     private fun comparison(): Expr {
         var expr = stringConcat()
-        while (match(TokenType.GREATER_THAN, TokenType.GREATER_THAN_EQUAL,
-                     TokenType.LESS_THAN, TokenType.LESS_THAN_EQUAL)) {
+        while (match(
+                TokenType.GREATER_THAN, TokenType.GREATER_THAN_EQUAL,
+                TokenType.LESS_THAN, TokenType.LESS_THAN_EQUAL
+            )
+        ) {
             val operator = previous()
             val right = stringConcat()
             expr = Expr.Binary(expr, operator, right)
@@ -154,14 +146,18 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun primary(): Expr {
-        if (match(TokenType.NUMBER, TokenType.STRING, TokenType.TRUE, TokenType.FALSE, TokenType.NULL)) {
+        if (match(
+                TokenType.NUMBER, TokenType.STRING,
+                TokenType.TRUE, TokenType.FALSE, TokenType.NULL
+            )
+        ) {
             return Expr.Literal(previous().literal)
         }
 
         if (match(TokenType.LEFT_PAREN)) {
             val expr = expression()
             if (!match(TokenType.RIGHT_PAREN)) {
-                throw ParseError("Dili balanced ang parentheses bai.", peek().line)
+                throw RuntimeError("Dili balanced ang parentheses bai.", peek().line)
             }
             return Expr.Grouping(expr)
         }
@@ -170,7 +166,7 @@ class Parser(private val tokens: List<Token>) {
             return Expr.Variable(previous())
         }
 
-        throw ParseError("Tarungi ang expression bai.", peek().line)
+        throw RuntimeError("Tarungi ang expression bai.", peek().line)
     }
 
     // helpers
@@ -185,6 +181,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun check(type: TokenType) = !isAtEnd() && peek().type == type
+
     private fun advance(): Token {
         if (!isAtEnd()) current++
         return previous()
@@ -196,7 +193,7 @@ class Parser(private val tokens: List<Token>) {
 
     private fun consume(type: TokenType, message: String): Token {
         if (check(type)) return advance()
-        throw ParseError(message, peek().line)
+        throw RuntimeError(message, peek().line)
     }
 
     private fun synchronize() {
