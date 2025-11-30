@@ -24,7 +24,7 @@ class Environment(val enclosing: Environment? = null) {
     fun get(name: String, line: Int): Any? {
         if (values.containsKey(name)) return values[name]
         return enclosing?.get(name, line) ?: throw RuntimeError(
-            "Wa ma-define nga variable '$name' bai.",
+            "Wa ma-define ang variable '$name' bai.",
             line
         )
     }

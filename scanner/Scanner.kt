@@ -20,19 +20,19 @@ class Scanner(
             ')' -> TokenType.RIGHT_PAREN to 1
             '{' -> TokenType.LEFT_BRACE to 1
             '}' -> TokenType.RIGHT_BRACE to 1
-            '+' -> if (next == '=') TokenType.ADD_ASSIGN to 2 else TokenType.PLUS to 1
-            '-' -> if (next == '=') TokenType.MINUS_ASSIGN to 2 else TokenType.MINUS to 1
-            '*' -> if (next == '=') TokenType.TIMES_ASSIGN to 2 else TokenType.TIMES to 1
-            '/' -> if (next == '=') TokenType.DIVIDED_ASSIGN to 2 else TokenType.DIVIDE to 1
-            '%' -> if (next == '=') TokenType.MODULO_ASSIGN to 2 else TokenType.MODULO to 1
-            '=' -> if (next == '=') TokenType.EQUALTO to 2 else TokenType.EQUALS to 1
-            '!' -> if (next == '=') TokenType.NOT_EQUAL to 2 else TokenType.NOT to 1
-            '&' -> if (next == '&') TokenType.LOGICAL_AND to 2 else TokenType.AND to 1
-            '|' -> if (next == '|') TokenType.LOGICAL_OR to 2 else TokenType.OR to 1
+            // '+' -> if (next == '=') TokenType.ADD_ASSIGN to 2 else TokenType.PLUS to 1
+            // '-' -> if (next == '=') TokenType.MINUS_ASSIGN to 2 else TokenType.MINUS to 1
+            // '*' -> if (next == '=') TokenType.TIMES_ASSIGN to 2 else TokenType.TIMES to 1
+            // '/' -> if (next == '=') TokenType.DIVIDED_ASSIGN to 2 else TokenType.DIVIDE to 1
+            // '%' -> if (next == '=') TokenType.MODULO_ASSIGN to 2 else TokenType.MODULO to 1
+            // '=' -> if (next == '=') TokenType.EQUALTO to 2 else TokenType.EQUALS to 1
+            // '!' -> if (next == '=') TokenType.NOT_EQUAL to 2 else TokenType.NOT to 1
+            // '&' -> if (next == '&') TokenType.LOGICAL_AND to 2 else TokenType.AND to 1
+            // '|' -> if (next == '|') TokenType.LOGICAL_OR to 2 else TokenType.OR to 1
             ',' -> TokenType.COMMA to 1
             ':' -> TokenType.COLON to 1
-            '<' -> if (next == '=') TokenType.LESS_THAN_EQUAL to 2 else TokenType.LESS_THAN to 1
-            '>' -> if (next == '=') TokenType.GREATER_THAN_EQUAL to 2 else TokenType.GREATER_THAN to 1
+            // '<' -> if (next == '=') TokenType.LESS_THAN_EQUAL to 2 else TokenType.LESS_THAN to 1
+            // '>' -> if (next == '=') TokenType.GREATER_THAN_EQUAL to 2 else TokenType.GREATER_THAN to 1
             '"' -> TokenType.DOUBLE_QUOTE to 1
             else -> null to 1
         }

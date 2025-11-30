@@ -41,7 +41,7 @@ class AstPrinter {
         }
 
         is Expr.Literal -> when (expr.value) {
-            null -> "waay"
+            null -> "wala"
             is String -> expr.value
             else -> expr.value.toString()
         }
