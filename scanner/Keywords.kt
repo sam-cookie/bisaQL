@@ -21,8 +21,10 @@ val keywords = mapOf(
     "buhata" to TokenType.BUHATA,
     "ugdi" to TokenType.ELSE,    
 
+    //while
     "samtang" to TokenType.WHILE,
-
+    
+    //function
     "gamiton" to TokenType.GAMITON,
     "balik" to TokenType.RETURN,
 

@@ -1,34 +1,150 @@
-HiliSaya Programming Language
+Bisaya Quality Language or BisaQL
 
 Creator
 Samantha Lodenn D. Lansoy
 Chrystie Rae A. Sajorne
 
 Language Overview
-HiliSaya is a  beginner-friendly programming language that is a mix of both Hiligaynon and Bisaya languages. It’s designed for students, teachers, and professionals who speak both languages. It helps programming a lot more understandable and familiar as it uses words that are used most by the target users. 
+Bisaya Quality Language or BisaQL is a  beginner-friendly programming language that is purely in Bisaya. The type of Bisaya this language uses is “Davao Bisaya,” making every line sound like how a Dabawenyo would talk. It’s designed for everyone who wants to learn Bisaya and those who already speak Bisaya. It helps programming become a lot more understandable and familiar as it uses words that are used by most target users.
 
 Main Characteristics: 
 Lower the barrier to learning programming by using local language keywords
 Simple syntax
-Supports the usual building blocks such as variables, functions, classes, basic control flow, and 
+Supports the usual building blocks such as variables, functions, basic control flow
 Dynamically typed 
 
-Keywords
-Variable (var) : declare a variable 
-Function (func): define a function
-Return (balik): return from a function
-Print (gawas): printing output to console
-If(kung): if condition
-Else(ugdi): else condition
-Elif(kungdi): elif condition
-While(samtang): while loop
-Break(untat): break a loop
-Continue(padayon): continue to next iteration
-True / false (tuod / atik) - Boolean literals
-Null (waay) - no value
-Sugod and Tapos - To start multiline 
-End (humana) - end of line indicator
+BisaQL Syntax Guide
+1. Variables
+To create a new variable, use the paghimog keyword.
+Syntax: paghimog bar [name] nga [value].
+Example:
+paghimog bar edad nga 21.
+paghimog bar ngalan nga "Juan".
+Re-assignment 
+To update or change the value of an existing variable, use usbi.
+Syntax: usbi ang [name] himuag [value].
+Example:
+usbi ang edad himuag 22.
+usbi ang ngalan himuag "Pedro".
 
+2. Output 
+To print a value to the screen, use ipakita.
+Syntax: ipakita ang [expression].
+Example:
+ipakita ang "Maayong Buntag!".
+ipakita ang edad.
+
+3. Arithmetic
+HiliSaya uses descriptive words instead of symbols for basic math.
+Operation
+Keyword
+Example
+Result
+Addition
+plusig
+5 plusig 5
+10
+Subtraction
+minusig
+10 minusig 2
+8
+Multiplication
+timesig
+4 timesig 2
+8
+Division
+dibayig
+10 dibayig 2
+5
+Modulo
+imodulog
+10 imodulog 3
+1
+Combine Strings
+sumpayig
+"Hi" sumpayig " Po"
+"Hi Po"
+
+Shortcut Math (Compound Assignment)
+Quickly update a variable's value.
+Keyword
+Equivalent To
+Example Code
+dugangig
++=
+usbi ang x dugangig 5.
+kuhaag
+-=
+usbi ang x kuhaag 2.
+piluag
+*=
+usbi ang x piluag 3.
+bahinag
+/=
+usbi ang x bahinag 2.
+
+
+4. Comparisons 
+Used to compare two values. These return tinuod (true) or atik (false).
+Symbol
+Keyword
+Example
+>
+mas dakos
+10 mas dakos 5
+<
+mas gamays
+5 mas gamays 10
+>=
+mas dakos tupongs
+edad mas dakos tupongs 18
+<=
+mas gamays tupongs
+presyo mas gamays tupongs 100
+==
+parehas
+x parehas y
+!=
+dili parehas
+x dili parehas y
+
+
+5. Logical Operators 
+Used to combine multiple conditions.
+AND (ug)
+Example: ipakita ang x parehas 1 ug y parehas 2.
+(Both must be true)
+OR (o)
+Example: ipakita ang  x parehas 1 o x parehas 5.
+(At least one must be true)
+NOT (dili)
+Example: dili tinuod.
+(Reverses the value)
+
+
+
+If / Else (Kung / Ugdi)
+Syntax:
+Kung ang [condition] buhata
+	[code to run if true]
+ugdi
+	[code to run if false]
+tapos.
+Example:
+kung marka mas dakos tupongs 75 buhata
+	ipakita ang "Pasar ka!".
+ugdi
+	ipakita ang "Hagbong.".
+tapos.
+While Loop (Samtang)
+Syntax:
+Samtang ang  [condition] buhata
+	[code to loop]
+tapos.
+
+7. Data Types
+Boolean: tinuod (true), atik (false)
+Null: wala
 
 Operators
 Arithmetic Operators
@@ -59,13 +175,6 @@ Assignment Operators
 *= : multiply and assign
 /= : divide and assign
 %= : module and assign 
-
-
-
-
-
-
-
 
 Literals
 Number Literals
@@ -100,66 +209,33 @@ Line and block comments are supported
 Syntax for line comments : // comment 
 Syntax for block comments: /// comment ///
 Syntax Style
+The way the code is structured is like how you would hear a Bisaya person talk
 Whitespace is not important, except that newlines terminates statements
-Compound statements end “humana” is explicitly said
-Blocks are created using indentation
+Blocks are created using sugod and tapos keyword
 Parentheses are used for grouping expressions and function calls 
 Brackets are used for arrays 
 
+Example code:
 
+paghimog bar ngalan nga "Juan".
+paghimog bar ihap nga 1.
 
-// variable declaration
-bar edad = 20.
-bar pangalan = “sir ren”.
+ipakita ang "Maayong Buntag, " sumpayig ngalan.
+ipakita ang "Magsugod na ta og ihap:".
 
-// function
-func greet (name)
-    gawas “hello, ” + name.
+samtang ang ihap mas gamays tupongs 5 buhata
+    ipakita ang "Numero: " plusig ihap.
 
-greet (“sir ren”).
-
-// with return value
-func add (a, b)
-        balik a + b.
-
-bar suma = add 6, 7.
-gawas (suma).
-
-// conditional
-bar edad = 20.
-
-sugod 
-kung edad == 20
-    gawas “welcome to your 20s!”.
-kungdi edad >= 30
-    gawas “pangasawa na oy”.
-ugdi
-    gawas “bata pa ka chuy”.
-tapos.
-
-// arrays and indexing
-bar lista = [1, 2, 3, 4]
-gawas lista[0]  // 1
-
-// sample program
-bar minimumAge = 18.
-
-sugod
-func userGreeting (name)
-    gawas “hello, ” + name + “!”.
-    checkValidity(18).
-     tapos.
-
-sugod
-func checkValidity (userAge)
-     sugod
-    kung userAge >= 18
-        gawas “pwede na sa dating app!”
+    kung ang ihap parehas 3 buhata
+        ipakita ang "   --> Naa na ta sa tunga!".
     ugdi
-        gawas “hawa diri sa dating app!”
-        tapos.
+        ipakita ang "   Padayon...".
+    tapos.
+
+    usbi ang ihap dugangig 1.
 tapos.
-userGreeting (“sir ren”).
+
+ipakita ang "Nahuman na ang pag-ihap!".
 
 
 Design Rationale
