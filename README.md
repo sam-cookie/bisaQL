@@ -151,12 +151,14 @@ tapos.
 ## Example code:
 
 _Creating variables_  
-Paghimog bar ngalan nga "Juan".  
-Paghimog bar ihap nga 1.  
+
+	Paghimog bar ngalan nga "Juan".  
+	Paghimog bar ihap nga 1.  
 
 _Printing Strings/ Statements_  
-Ipakita ang "Maayong Buntag, " sumpayig ngalan.    
-ipakita ang "Magsugod na ta og ihap:".   
+
+	Ipakita ang "Maayong Buntag, " sumpayig ngalan.    
+	Ipakita ang "Magsugod na ta og ihap:".   
 
 _While Statement_  
 
