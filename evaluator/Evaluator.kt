@@ -7,6 +7,12 @@ import errorhandling.ReturnException
 
 class Evaluator(private var environment: Environment = Environment()) {
 
+    init {
+        // register native function
+        environment.define("orasSubong", TimeFunc())
+        environment.define("petsaSubong", DateFunc())
+    }
+
     fun executeProgram(program: Stmt.Program) {
         program.statements.forEach { execute(it) }
     }
@@ -63,7 +69,9 @@ class Evaluator(private var environment: Environment = Environment()) {
             is Stmt.Call -> {
                 // evaluate call as an expression to get return value
                 evaluate(Expr.Call(Expr.Variable(stmt.name), stmt.name, stmt.arguments))
+
             }
+            
 
             is Stmt.Return -> {
                 val value = stmt.value?.let { evaluate(it) }
@@ -98,14 +106,25 @@ class Evaluator(private var environment: Environment = Environment()) {
             }
             is Expr.Call -> {
                 val calleeValue = evaluate(expr.callee)
-                if (calleeValue !is FunctionObject) throw RuntimeError(
-                    "${(expr.callee as? Expr.Variable)?.name?.lexeme ?: "unknown"} dili function bai.",
-                    (expr.callee as? Expr.Variable)?.name?.line ?: 0
-                )
 
-                val func = calleeValue
                 val args = expr.arguments.map { evaluate(it) }
-                return func.call(args)  // arity check already happens in FunctionObject.call
+
+                return when (calleeValue) {
+                    is FunctionObject -> calleeValue.call(args)
+                    is NativeFunction -> {
+                        if (args.size != calleeValue.arity) {
+                            throw RuntimeError(
+                                "Expected ${calleeValue.arity} arguments but got ${args.size}.",
+                                (expr.callee as? Expr.Variable)?.name?.line ?: 0
+                            )
+                        }
+                        calleeValue.call(this, args)
+                    }
+                    else -> throw RuntimeError(
+                        "${(expr.callee as? Expr.Variable)?.name?.lexeme ?: "unknown"} dili function bai.",
+                        (expr.callee as? Expr.Variable)?.name?.line ?: 0
+                    )
+                }
             }
         }
     }

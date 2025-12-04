@@ -1,6 +1,16 @@
-// while loop
+while loop
+Paghimog bar x nga 5.
+Samtang ang x mas gamays 10 buhata,
+Ipakita ang x.
+Usbi ang x dugangig 1.
+Tapos.
 
-// for loop 
+
+for loop 
+Paghimog bar x nga 5.
+Para ang x, habang x mas gamays 7, Usbi ang x dugangig 1.
+Ipakita ang "Happy Birthday".
+Tapos.
 
 // function 
 Buhatag greetings ang (pangalan),
@@ -58,5 +68,42 @@ Tapos.
 Paghimog bar facresult nga factorial kay 5.
 Ipakita ang facresult.
 
+//Native Functions
+Ipakita ang orasSubong().
+Ipakita ang petsaSubong().
+
 // if else 
+Paghimog bar temperature nga 30.
+Paghimog bar humidity nga 80.
+Kung ang temperature mas dakos 30 buhata,
+Ipakita ang "Ang init".
+Ugdi
+Ipakita ang "K lang".
+Tapos.
+Tapos.
+
+Paghimog bar score nga 75.
+Kung ang score mas dakos tupongs 90 buhata,
+Paghimog bar grade nga "A".
+Ipakita ang grade.
+Kung ang score mas dakos tupongs 80 buhata,
+Paghimog bar grade nga "B".
+Ipakita ang grade.
+Kung ang score mas dakos tupongs 70 buhata,
+Paghimog bar grade nga "C".
+Ipakita ang grade.
+Ugdi
+Paghimog bar grade nga "F".
+Ipakita ang grade.
+Tapos.
+Tapos.
+Tapos.
+Tapos.
+
+Paghimog bar score nga 75.
+Ugdi
+Ipakita ang score.
+Tapos.
+
+
 
