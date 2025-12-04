@@ -39,6 +39,14 @@ class Evaluator(private var environment: Environment = Environment()) {
                 }
             }
 
+            is Stmt.For -> {
+                evaluate(stmt.initializer)
+                while (evaluate(stmt.condition) as? Boolean == true) {
+                    executeBlock(stmt.body, Environment(environment))
+                    execute(stmt.update)
+                }
+            }
+
             is Stmt.If -> {
                 if (isTruthy(evaluate(stmt.condition))) {
                     executeBlock(stmt.statements, Environment(environment))

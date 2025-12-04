@@ -23,6 +23,10 @@ val keywords = mapOf(
 
     //while
     "Samtang" to TokenType.WHILE,
+
+    //for
+    "Para" to TokenType.FOR,
+    "habang" to TokenType.HABANG,
     
     //function
     "Buhatag" to TokenType.FUNCTION,

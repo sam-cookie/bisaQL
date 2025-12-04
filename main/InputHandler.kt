@@ -70,7 +70,7 @@ class InputHandler {
     private fun isBlockStart(input: String): Boolean {
         val trimmed = input.trim()
 
-        val allowed = listOf("Sugod", "Samtang", "Kung", "Ugdi", "Buhatag")
+        val allowed = listOf("Sugod", "Samtang", "Kung", "Ugdi", "Buhatag", "Para")
 
         for (kw in allowed) {
             if (trimmed.startsWith(kw)) return true

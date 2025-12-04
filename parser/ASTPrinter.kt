@@ -99,5 +99,11 @@ class AstPrinter {
             val args = stmt.arguments.joinToString(", ") { astToString(it) }
             indent + "${stmt.name.lexeme}($args)"
         }
+        is Stmt.For -> {
+            val bodyStr = stmt.body.joinToString("\n") { stmtToString(it, indent + "    ") }
+            val initializerStr =  astToString(stmt.initializer)
+            val updateStr = stmtToString(stmt.update, "")
+            "Para ang $initializerStr, habang ${astToString(stmt.condition)}, $updateStr, buhata,\n$bodyStr\n${indent}Tapos."
+        }
     }
 }

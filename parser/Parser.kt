@@ -26,6 +26,7 @@ class Parser(private val tokens: List<Token>) {
             check(TokenType.ELSE) -> {
                 consume(TokenType.IF, "Dapat naay 'kung' bago ang ugdi") 
                 elseStatement()}
+            check(TokenType.FOR) -> forStatement()
             else -> expressionStatement()
         }
     }
@@ -89,7 +90,7 @@ class Parser(private val tokens: List<Token>) {
 
     private fun whileStatement(): Stmt {
         consume(TokenType.WHILE, "Dapat magsugod sa 'samtang'")
-        consume(TokenType.ANG, "Dapat naay 'ang' before ang condition")
+        consume(TokenType.ANG, "Dapat naay 'ang' bago ang condition")
         val condition = expression()
         consume(TokenType.BUHATA, "Dapat naay 'buhata' after condition")
         consume(TokenType.COMMA, "Dapat naay comma human sa 'buhata'")
@@ -101,6 +102,31 @@ class Parser(private val tokens: List<Token>) {
         consume(TokenType.PERIOD, "Dapat 'tapos.' ang ending")
         return Stmt.While(condition, stmts)
     }
+
+    private fun forStatement(): Stmt {
+        consume(TokenType.FOR, "Dapat magsugod sa 'Para'")
+        consume(TokenType.ANG, "Dapat naay 'ang' bago ang initializer")
+        val initializer = expression()
+
+        consume(TokenType.COMMA, "Dapat naay comma human sa pag-initialize")
+        consume(TokenType.HABANG, "Dapat naay 'habang' bago ang condition")
+        val condition = expression()
+        consume(TokenType.COMMA, "Dapat naay comma human sa condition")
+        
+        val update = assignmentStatement()
+        // consume(TokenType.BUHATA, "Dapat naay 'buhata' after ang update")
+        // consume(TokenType.COMMA, "Dapat naay comma human sa update")
+
+        val body = mutableListOf<Stmt>()
+        while (!check(TokenType.TAPOS) && !isAtEnd()) {
+                body.add(statement())
+        }
+        consume(TokenType.TAPOS, "Dapat naay 'tapos' para matapos ang para-block")
+        consume(TokenType.PERIOD, "Dapat naay period sa katapusan")
+
+        return Stmt.For(initializer, condition, update, body)
+    }
+
 
     private fun funDeclaration(): Stmt.Fun {
         consume(TokenType.FUNCTION, "Dapat magsugod sa 'Buhatag'")

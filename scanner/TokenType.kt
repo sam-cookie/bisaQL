@@ -25,9 +25,10 @@ enum class TokenType {
     SAMTANG,                           // while
     GAMITON,                           // function
     BALIK,                             // return
-    CALL, 
+    CALL,
+    PARA, HABANG,                       // for
 
-    VAR, FUNCTION, RETURN, PRINT, IF, ELSE, WHILE, BREAK, CONTINUE, TRUE, FALSE, NULL, SUMPAY, KAY,
+    VAR, FUNCTION, RETURN, PRINT, IF, ELSE, WHILE, FOR, BREAK, CONTINUE, TRUE, FALSE, NULL, SUMPAY, KAY,
 
     EOF
 }
