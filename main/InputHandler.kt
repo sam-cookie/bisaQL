@@ -60,7 +60,7 @@ class InputHandler {
 
     private fun isBlockStart(input: String): Boolean {
         val clean = input.trim().lowercase()
-        return clean.startsWith("sugod") || clean.startsWith("samtang") ||  clean.startsWith("kung")
+        return clean == "sugod" || clean.startsWith("samtang") ||  clean.startsWith("kung") || clean.startsWith("ugdi")
     }
 
     private fun isBlockEnd(input: String): Boolean {

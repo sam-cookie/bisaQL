@@ -45,8 +45,8 @@ class Evaluator(private var environment: Environment = Environment()) {
                 } else if (stmt.elseBranch != null) {
                     executeBlock((stmt.elseBranch as Stmt.Block).statements, Environment(environment))
                 }
+            }
         }
-    }
     }
 
     private fun executeBlock(statements: List<Stmt>, blockEnv: Environment) {
