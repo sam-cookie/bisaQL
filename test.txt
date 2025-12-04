@@ -3,7 +3,7 @@ Paghimog bar x nga 5.
 Samtang ang x mas gamays 10 buhata,
 Ipakita ang x.
 Usbi ang x dugangig 1.
-Tapos.
+Tapos.+
 
 
 for loop 
@@ -12,7 +12,7 @@ Para ang x, habang x mas gamays 7, Usbi ang x dugangig 1.
 Ipakita ang "Happy Birthday".
 Tapos.
 
-// function 
+ // function
 Buhatag greetings ang (pangalan),
 	Ipakita ang "Maayong buntag, " sumpayig pangalan.
 Tapos.

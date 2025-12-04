@@ -160,6 +160,28 @@ class Evaluator(private var environment: Environment = Environment()) {
                 if (left is String || right is String) valueToString(left) + valueToString(right)
                 else throw RuntimeError("Mali nga operands for sumpayig bai!", expr.operator.line)
             }
+
+            TokenType.CHAR -> {
+                // left must be string, right must be number
+                if (left !is String)
+                    throw RuntimeError("String dapat sa left side sa 'letter'.", expr.operator.line)
+
+                val index = right.toNumber(expr.operator).toInt()
+
+                if (index < 0 || index >= left.length)
+                    throw RuntimeError("Index gawas sa range sa string.", expr.operator.line)
+
+                return left[index].toString()
+            }
+
+            TokenType.LENGTH -> {
+                // left must be string
+                if (left !is String)
+                    throw RuntimeError("String dapat ang kuhaan ug 'katason'.", expr.operator.line)
+
+                return left.length.toDouble()
+            }
+            
             TokenType.GREATER_THAN -> left.compareNumbers(right, expr.operator) { a, b -> a > b }
             TokenType.GREATER_THAN_EQUAL -> left.compareNumbers(right, expr.operator) { a, b -> a >= b }
             TokenType.LESS_THAN -> left.compareNumbers(right, expr.operator) { a, b -> a < b }

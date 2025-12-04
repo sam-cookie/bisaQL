@@ -27,6 +27,7 @@ enum class TokenType {
     BALIK,                             // return
     CALL,
     PARA, HABANG,                       // for
+    LENGTH, CHAR,                       
 
     VAR, FUNCTION, RETURN, PRINT, IF, ELSE, WHILE, FOR, BREAK, CONTINUE, TRUE, FALSE, NULL, SUMPAY, KAY,
 

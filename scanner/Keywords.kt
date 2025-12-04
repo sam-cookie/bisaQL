@@ -16,6 +16,9 @@ val keywords = mapOf(
     //printing
     "Ipakita" to TokenType.PRINT,
 
+    "letter" to TokenType.CHAR,
+    "Katason" to TokenType.LENGTH,
+
     //if statement, do 
     "Kung" to TokenType.IF,
     "buhata" to TokenType.BUHATA,
