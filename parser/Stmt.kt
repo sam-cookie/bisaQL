@@ -13,4 +13,5 @@ sealed class Stmt {
     data class While(val condition: Expr, val statements: List<Stmt>) : Stmt()
     data class If(val condition: Expr, val statements: List<Stmt>, val elseBranch: Stmt?) : Stmt()
     data class For(val initializer: Expr, val condition: Expr, val update: Stmt, val body: List<Stmt>) : Stmt()
+    data class Return(val keyword: Token, val value: Expr?) : Stmt()
 }

@@ -30,7 +30,7 @@ val keywords = mapOf(
     
     //function
     "Buhatag" to TokenType.FUNCTION,
-    "balik" to TokenType.RETURN,
+    "Ibalik" to TokenType.RETURN,
     "Tawagi" to TokenType.CALL,
     "kay" to TokenType.KAY,
 

@@ -105,5 +105,7 @@ class AstPrinter {
             val updateStr = stmtToString(stmt.update, "")
             "Para ang $initializerStr, habang ${astToString(stmt.condition)}, $updateStr, buhata,\n$bodyStr\n${indent}Tapos."
         }
+
+        is Stmt.Return -> indent + "Balika ${stmt.value?.let { astToString(it) } ?: ""}"
     }
 }

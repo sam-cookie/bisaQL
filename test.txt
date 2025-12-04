@@ -1,19 +1,62 @@
-bar greeting = "maayong adlaw, ".
-bar ngalan = "kalibutan".
+// while loop
 
-gawas greeting sumpay ngalan.
+// for loop 
 
-bar x = 10.
-bar y = 20.
+// function 
+Buhatag greetings ang (pangalan),
+	Ipakita ang "Maayong buntag, " sumpayig pangalan.
+Tapos.
 
-sugod
-	bar x = 5. // shadows outer x
-	gawas "inner x: " + y.
-	gawas "Outer y: " + y. 
-tapos.
+Tawagi ang greetings kay "Sir Ren".
 
-gawas "Outer x: " + x.
+Ipakita ang "makeCounter:".
+Buhatag makeCounter ang (),
+    Paghimog bar count nga 0.
+    Buhatag increment ang (),
+        Usbi ang count dugangig 1.
+        Ibalik ang count.
+    Tapos.
+    Ibalik ang increment.
+Tapos.
 
-//reassignment
-x = x + y.
-gawas "x + y = " + x. 
+Paghimog bar counter nga makeCounter().
+Ipakita ang counter().  // prints 1
+Ipakita ang counter().  // prints 2
+Ipakita ang counter().  // prints 3
+
+Ipakita ang "adding two numbers:".
+	Buhatag add ang (x, y),
+	    Ibalik ang x plusig y.
+Tapos.
+
+Paghimog bar result nga add kay 3, 5.
+// Paghimog bar result2 nga add kay 3, 5, 3.
+Ipakita ang result.
+// Ipakita ang result2.
+
+Ipakita ang "Recursion Fibonacci: ".
+
+Buhatag fibonacci ang (n), 
+	Kung ang n mas gamays 3 buhata, // our language is 1-based fibonacci
+	//Ipakita ang 1.
+	Ibalik ang 1.
+	Tapos.
+	Ibalik ang fibonacci(n minusig 1) plusig fibonacci(n minusig 2). 
+Tapos.
+
+Paghimog bar recursion nga fibonacci kay 10.
+Ipakita ang recursion.
+
+Ipakita ang "Recursion factorial: ".
+Buhatag factorial ang (n),
+    Kung ang n mas gamays 2 buhata,
+        Ibalik ang 1.
+    Tapos.
+    Ibalik ang n timesig factorial(n minusig 1).
+Tapos.
+
+Paghimog bar facresult nga factorial kay 5.
+Ipakita ang facresult.
+
+// if else 
+

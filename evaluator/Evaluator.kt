@@ -3,6 +3,7 @@ package evaluator
 import parser.*
 import scanner.*
 import errorhandling.RuntimeError
+import errorhandling.ReturnException
 
 class Evaluator(private var environment: Environment = Environment()) {
 
@@ -16,7 +17,6 @@ class Evaluator(private var environment: Environment = Environment()) {
                 val value = stmt.initializer?.let { evaluate(it) }
                 environment.define(stmt.name.lexeme, value)
             }
-
             is Stmt.Assign -> {
                 val value = evaluate(stmt.value)
                 environment.assign(stmt.name.lexeme, value, stmt.name.line)
@@ -56,16 +56,24 @@ class Evaluator(private var environment: Environment = Environment()) {
             }
 
             is Stmt.Fun -> {
-                environment.define(stmt.name.lexeme, stmt)
+                val functionObj = FunctionObject(stmt.name, stmt.params, stmt.body, environment)
+                environment.define(stmt.name.lexeme, functionObj)
             }
 
             is Stmt.Call -> {
-                executeCall(stmt)
+                // evaluate call as an expression to get return value
+                evaluate(Expr.Call(Expr.Variable(stmt.name), stmt.name, stmt.arguments))
+            }
+
+            is Stmt.Return -> {
+                val value = stmt.value?.let { evaluate(it) }
+                throw ReturnException(value)
             }
         }
     }
 
-    private fun executeBlock(statements: List<Stmt>, blockEnv: Environment) {
+
+    fun executeBlock(statements: List<Stmt>, blockEnv: Environment) {
         val previous = environment
         environment = blockEnv
         try {
@@ -90,21 +98,14 @@ class Evaluator(private var environment: Environment = Environment()) {
             }
             is Expr.Call -> {
                 val calleeValue = evaluate(expr.callee)
-                if (calleeValue !is Stmt.Fun) throw RuntimeError(
+                if (calleeValue !is FunctionObject) throw RuntimeError(
                     "${(expr.callee as? Expr.Variable)?.name?.lexeme ?: "unknown"} dili function bai.",
-                    expr.callee.let { (it as? Expr.Variable)?.name?.line ?: 0 }
+                    (expr.callee as? Expr.Variable)?.name?.line ?: 0
                 )
 
                 val func = calleeValue
-
-                val localEnv = Environment(environment)
-                func.params.forEachIndexed { i, param ->
-                    val argValue = if (i < expr.arguments.size) evaluate(expr.arguments[i]) else null
-                    localEnv.define(param.lexeme, argValue)
-                }
-
-                executeBlock(func.body.statements, localEnv)
-                null
+                val args = expr.arguments.map { evaluate(it) }
+                return func.call(args)  // arity check already happens in FunctionObject.call
             }
         }
     }
@@ -177,23 +178,12 @@ class Evaluator(private var environment: Environment = Environment()) {
         else -> value.toString()
     }
 
-    private fun executeCall(stmt: Stmt.Call) {
+    private fun executeCall(stmt: Stmt.Call): Any? {
         val calleeValue = environment.get(stmt.name.lexeme, stmt.name.line)
-        if (calleeValue !is Stmt.Fun) throw RuntimeError("${stmt.name.lexeme} dili function bai.", stmt.name.line)
-
+        if (calleeValue !is FunctionObject) throw RuntimeError("${stmt.name.lexeme} dili function bai.", stmt.name.line)
         val func = calleeValue
-        if (stmt.arguments.size != func.params.size) {
-            throw RuntimeError(
-                "Gisugo nga ${func.name.lexeme} requires ${func.params.size} args, pero ${stmt.arguments.size} imong gihatag.",
-                stmt.name.line
-            )
-        }
-
-        val localEnv = Environment(environment)
-        func.params.forEachIndexed { i, param ->
-            localEnv.define(param.lexeme, evaluate(stmt.arguments[i]))
-        }
-
-        executeBlock(func.body.statements, localEnv)
+        val args = stmt.arguments.map { evaluate(it) }
+        return func.call(args)  // ✅ now returns function value
     }
+
 }

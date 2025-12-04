@@ -27,13 +27,13 @@ class Parser(private val tokens: List<Token>) {
                 consume(TokenType.IF, "Dapat naay 'kung' bago ang ugdi") 
                 elseStatement()}
             check(TokenType.FOR) -> forStatement()
+            check(TokenType.RETURN) -> returnStatement()
             else -> expressionStatement()
         }
     }
 
     private fun varDeclaration(): Stmt {
-        consume(TokenType.PAGHIMO, "Dapat magsugod sa 'paghimog'")
-        // consume(TokenType.UG, "Dapat naay 'ug'") 
+        consume(TokenType.PAGHIMO, "Dapat magsugod sa 'Paghimog'")
         consume(TokenType.VAR, "Dapat naay 'bar'")
         val name = consume(TokenType.IDENTIFIER, "Dapat naay variable name")
         consume(TokenType.NGA, "Dapat naay 'nga' before ang value")
@@ -209,6 +209,14 @@ class Parser(private val tokens: List<Token>) {
         return Stmt.Block(stmts)
     }
 
+    private fun returnStatement(): Stmt {
+        val keyword = consume(TokenType.RETURN, "Dapat magsugod sa 'Ibalik'")
+        consume(TokenType.ANG, "DApat naay 'ang' paghuman sa ibalik!")
+        val value: Expr? = if (!check(TokenType.PERIOD)) expression() else null
+        consume(TokenType.PERIOD, "Dapat naay period sa katapusan sa return statement")
+        return Stmt.Return(keyword, value)
+    }
+
     private fun blockStatement(): Stmt.Block {
         consume(TokenType.SUGOD, "Dapat magsugod sa 'sugod'")
         val stmts = mutableListOf<Stmt>()
@@ -283,8 +291,7 @@ class Parser(private val tokens: List<Token>) {
                 consume(TokenType.EQUALTO, "Ga-expect ug 'parehas' after 'dili'.") 
                 
                 val operator = Token(TokenType.NOT_EQUAL, "dili parehas", null, startToken.line)
-                
-                // parse only a single value, not full arithmetic expression
+
                 val right = stringConcat()
                 expr = Expr.Binary(expr, operator, right)
                 continue
@@ -364,37 +371,62 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun primary(): Expr {
-        // literal values
-        if (match(TokenType.STRING)) return Expr.Literal(previous().literal!!)
-        if (match(TokenType.NUMBER, TokenType.TRUE, TokenType.FALSE, TokenType.NULL)) return Expr.Literal(previous().literal!!)
-
-        // variable or function call
-        if (match(TokenType.IDENTIFIER)) {
-            var expr: Expr = Expr.Variable(previous())
-
-            // function call
-            while (match(TokenType.LEFT_PAREN)) {
-                val args = mutableListOf<Expr>()
-                if (!check(TokenType.RIGHT_PAREN)) {
-                    do {
-                        args.add(expression())
-                    } while (match(TokenType.COMMA))
-                }
-                val paren = consume(TokenType.RIGHT_PAREN, "Dapat naay ')' after function arguments")
-                expr = Expr.Call(expr, paren, args)
+        return when {
+            match(TokenType.IDENTIFIER) -> {
+                // variable or function call
+                parseCallOrVariable(Expr.Variable(previous()))
             }
 
-            return expr
+            match(TokenType.LEFT_PAREN) -> {
+                val expr = expression()
+
+                if (isAtEnd() || !check(TokenType.RIGHT_PAREN)) {
+                    throw RuntimeError("Sa primary, dili balanced ang parentheses", peek().line)
+                }
+
+                advance() // consume the RIGHT_PAREN
+                Expr.Grouping(expr)
+            }
+
+            match(TokenType.STRING) -> Expr.Literal(previous().literal!!)
+            match(TokenType.NUMBER, TokenType.TRUE, TokenType.FALSE, TokenType.NULL) -> Expr.Literal(previous().literal!!)
+            else -> throw RuntimeError("Tarungi ang expression. Found unexpected token: ${peek().type}", peek().line)
+        }
+    }
+
+    private fun parseCallOrVariable(callee: Expr): Expr {
+        var expr = callee
+
+        while (true) {
+            if (check(TokenType.LEFT_PAREN)) {
+                val openParen = advance() // consume '('
+                val args = parseArguments(TokenType.RIGHT_PAREN)
+                expr = Expr.Call(expr, openParen, args)
+            } 
+            else if (check(TokenType.KAY)) {
+                val kayToken = advance() // consume 'KAY'
+                val args = mutableListOf<Expr>()
+                while (!isAtEnd() && !check(TokenType.PERIOD)) {
+                    args.add(expression())
+                    match(TokenType.COMMA) // optional comma
+                }
+                expr = Expr.Call(expr, kayToken, args)
+            } 
+            else break
         }
 
-        // grouping
-        if (match(TokenType.LEFT_PAREN)) {
-            val expr = expression()
-            consume(TokenType.RIGHT_PAREN, "Dili balanced ang parentheses.")
-            return Expr.Grouping(expr)
-        }
+        return expr
+    }
 
-        throw RuntimeError("Tarungi ang expression. Found unexpected token: ${peek().type}", peek().line)
+    private fun parseArguments(closing: TokenType): List<Expr> {
+        val args = mutableListOf<Expr>()
+        if (!check(closing)) {
+            do {
+                args.add(expression())
+            } while (match(TokenType.COMMA))
+        }
+        consume(closing, "Dili balanced ang parentheses sa function call")
+        return args
     }
 
     private fun match(vararg types: TokenType): Boolean {
