@@ -4,63 +4,83 @@ import errorhandling.RuntimeError
 
 class InputHandler {
     fun readMultiLineInput(): String? {
-        print("> ")
-        var input = readLine() ?: return null
-        var trimmed = input.trim()
-        var lineNumber = 1 // track line numbers
+        while (true) { 
+            print("> ")
+            var input = readLine() ?: return null
+            var trimmed = input.trim()
+            var lineNumber = 1 // track line numbers
 
-        if (trimmed.isEmpty()) return ""
-        if (trimmed.lowercase() == "humana") return null
+            if (trimmed.isEmpty()) return ""
 
-        if (isBlockStart(trimmed)) {
-            var blockDepth = 1
+            if (trimmed.lowercase() == "humana") return null
 
-            while (blockDepth > 0) {
-                val prompt = "".repeat(blockDepth) + " "
-                print(prompt)
+            try {
+                if (isBlockStart(trimmed)) {
+                    var blockDepth = 1
 
-                val line = readLine() ?: break
-                input += "\n$line"
-                lineNumber++ // increment line number
-                val t = line.trim()
+                    while (blockDepth > 0) {
+                        val prompt = "".repeat(blockDepth) + " "
+                        print(prompt)
 
-                if (isBlockStart(t)) blockDepth++
-                if (isBlockEnd(t)) blockDepth--
-            }
+                        val line = readLine() ?: break
+                        input += "\n$line"
+                        lineNumber++
+                        val t = line.trim()
 
-            if (blockDepth > 0) {
-                throw RuntimeError("Wala na close ang blocks bai!", lineNumber)
+                        if (isBlockStart(t)) blockDepth++
+                        if (isBlockEnd(t)) blockDepth--
+                    }
+
+                    if (blockDepth > 0) {
+                        throw RuntimeError("Wala na close ang blocks bai!", lineNumber)
+                    }
+                }
+
+                // handle /* */ comments
+                else if (trimmed.startsWith("/*")) {
+                    var blockDepth = 1
+
+                    while (blockDepth > 0) {
+                        val prompt = "> "
+                        print(prompt)
+
+                        val line = readLine() ?: break
+                        input += "\n$line"
+                        lineNumber++
+                        val t = line.trim()
+
+                        if (t.contains("/*")) blockDepth++
+                        if (t.contains("*/")) blockDepth--
+                    }
+
+                    if (blockDepth > 0) {
+                        throw RuntimeError("Wala na close ang block comment!", lineNumber)
+                    }
+                }
+
+                return input
+            } catch (e: RuntimeError) {
+                println("Runtime Error: ${e.message}")
+                // loop will restart and ask for input again
             }
         }
+}
 
-        // handle /* */ comments
-        else if (trimmed.startsWith("/*")) {
-            var blockDepth = 1
-
-            while (blockDepth > 0) {
-                val prompt = "> "
-                print(prompt)
-
-                val line = readLine() ?: break
-                input += "\n$line"
-                lineNumber++
-                val t = line.trim()
-
-                if (t.contains("/*")) blockDepth++
-                if (t.contains("*/")) blockDepth--
-            }
-
-            if (blockDepth > 0) {
-                throw RuntimeError("Wala na close ang block comment!", lineNumber)
-            }
-        }
-
-        return input
-    }
 
     private fun isBlockStart(input: String): Boolean {
-        val clean = input.trim().lowercase()
-        return clean.startsWith("sugod") || clean.startsWith("samtang") ||  clean.startsWith("kung")
+        val trimmed = input.trim()
+
+        val allowed = listOf("Sugod", "Samtang", "Kung", "Buhatag")
+
+        for (kw in allowed) {
+            if (trimmed.startsWith(kw)) return true
+
+            if (trimmed.lowercase().startsWith(kw.lowercase())) {
+                throw RuntimeError("Dapat magsugod sa uppercase '$kw'.", 1)
+            }
+        }
+
+        return false
     }
 
     private fun isBlockEnd(input: String): Boolean {

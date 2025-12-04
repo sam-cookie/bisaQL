@@ -1,10 +1,10 @@
 package parser
+
 import scanner.*
 
 // AST printer
 class AstPrinter {
 
-    // print a single expression
     fun print(expr: Expr) {
         println(astToString(expr))
     }
@@ -25,6 +25,7 @@ class AstPrinter {
                 TokenType.NOT_EQUAL -> "dili pareha sa"
                 TokenType.AND -> "ug"
                 TokenType.OR -> "or"
+                TokenType.SUMPAY -> "sumpayig"
                 else -> expr.operator.lexeme
             }
             "${astToString(expr.left)} $op ${astToString(expr.right)}"
@@ -49,9 +50,17 @@ class AstPrinter {
         is Expr.Grouping -> "( ${astToString(expr.expression)} )"
         is Expr.Variable -> expr.name.lexeme
         is Expr.Assign -> "(${expr.name.lexeme} = ${astToString(expr.value)})"
+
+        is Expr.Call -> {
+            val args = expr.arguments.joinToString(", ") { astToString(it) }
+            val calleeName = when (val callee = expr.callee) {
+                is Expr.Variable -> callee.name.lexeme
+                else -> astToString(callee)
+            }
+            "$calleeName($args)"
+        }
     }
 
-    // print a statement 
     fun printStmt(stmt: Stmt) {
         println(stmtToString(stmt))
     }
@@ -68,17 +77,27 @@ class AstPrinter {
             stmt.statements.joinToString("\n") { stmtToString(it, indent + "    ") } +
             "\n${indent}Tapos"
         }
-         is Stmt.While -> { 
-        "Samtang ang ${astToString(stmt.condition)} buhata,\n" +
-        stmt.statements.joinToString("\n") { stmtToString(it, indent + "    ") } +
-        "\n${indent}tapos."
-        } 
+        is Stmt.While -> {
+            "Samtang ang ${astToString(stmt.condition)} buhata,\n" +
+            stmt.statements.joinToString("\n") { stmtToString(it, indent + "    ") } +
+            "\n${indent}tapos."
+        }
         is Stmt.If -> {
             val blockStmt = stmt.statements.joinToString("\n") { stmtToString(it, indent + "    ") }
             val elseBlockStmt = stmt.elseBranch?.let { 
                 "\nUgdi\n" + (it as Stmt.Block).statements.joinToString("\n") { stmtToString(it, indent + "    ") }
             } ?: ""
             "Kung ang ${astToString(stmt.condition)} buhata,\n$blockStmt$elseBlockStmt\n${indent}tapos."
+        }
+        is Stmt.Fun -> {
+            val params = stmt.params.joinToString(", ") { it.lexeme }
+            indent + "Buhatag ${stmt.name.lexeme}($params)\n" +
+                stmt.body.statements.joinToString("\n") { stmtToString(it, indent + "    ") } +
+                "\n${indent}Tapos"
+        }
+        is Stmt.Call -> {
+            val args = stmt.arguments.joinToString(", ") { astToString(it) }
+            indent + "${stmt.name.lexeme}($args)"
         }
     }
 }

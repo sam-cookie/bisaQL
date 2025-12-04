@@ -33,9 +33,9 @@ class Evaluator(private var environment: Environment = Environment()) {
 
             is Stmt.Program -> executeProgram(stmt)
 
-           is Stmt.While -> {
+            is Stmt.While -> {
                 while (evaluate(stmt.condition) as? Boolean == true) {
-                    executeBlock(stmt.statements, environment)
+                    executeBlock(stmt.statements, Environment(environment))
                 }
             }
 
@@ -45,6 +45,14 @@ class Evaluator(private var environment: Environment = Environment()) {
                 } else if (stmt.elseBranch != null) {
                     executeBlock((stmt.elseBranch as Stmt.Block).statements, Environment(environment))
                 }
+            }
+
+            is Stmt.Fun -> {
+                environment.define(stmt.name.lexeme, stmt)
+            }
+
+            is Stmt.Call -> {
+                executeCall(stmt)
             }
         }
     }
@@ -72,6 +80,24 @@ class Evaluator(private var environment: Environment = Environment()) {
                 environment.assign(expr.name.lexeme, value, expr.name.line)
                 value
             }
+            is Expr.Call -> {
+                val calleeValue = evaluate(expr.callee)
+                if (calleeValue !is Stmt.Fun) throw RuntimeError(
+                    "${(expr.callee as? Expr.Variable)?.name?.lexeme ?: "unknown"} dili function bai.",
+                    expr.callee.let { (it as? Expr.Variable)?.name?.line ?: 0 }
+                )
+
+                val func = calleeValue
+
+                val localEnv = Environment(environment)
+                func.params.forEachIndexed { i, param ->
+                    val argValue = if (i < expr.arguments.size) evaluate(expr.arguments[i]) else null
+                    localEnv.define(param.lexeme, argValue)
+                }
+
+                executeBlock(func.body.statements, localEnv)
+                null
+            }
         }
     }
 
@@ -89,46 +115,31 @@ class Evaluator(private var environment: Environment = Environment()) {
         val right = evaluate(expr.right)
 
         return when (expr.operator.type) {
-            // Arithmetic
-            TokenType.PLUS -> if (left is Number && right is Number) left.toDouble() + right.toDouble()
-                              else valueToString(left) + valueToString(right)
-
+            TokenType.PLUS -> left.toNumber(expr.operator) + right.toNumber(expr.operator)
             TokenType.MINUS -> left.toNumber(expr.operator) - right.toNumber(expr.operator)
             TokenType.TIMES -> left.toNumber(expr.operator) * right.toNumber(expr.operator)
-            
             TokenType.DIVIDE -> {
                 val r = right.toNumber(expr.operator)
                 if (r == 0.0) throw RuntimeError("Bawal magdivide by 0 bai.", expr.operator.line)
                 left.toNumber(expr.operator) / r
             }
-            
             TokenType.MODULO -> {
                 val r = right.toNumber(expr.operator)
                 if (r == 0.0) throw RuntimeError("Bawal mag modulo by 0 bai.", expr.operator.line)
                 left.toNumber(expr.operator) % r
             }
-            
-            TokenType.SUMPAY -> valueToString(left) + valueToString(right)
-
-            // Comparison
+            TokenType.SUMPAY -> {
+                if (left is String || right is String) valueToString(left) + valueToString(right)
+                else throw RuntimeError("Mali nga operands for sumpayig bai!", expr.operator.line)
+            }
             TokenType.GREATER_THAN -> left.compareNumbers(right, expr.operator) { a, b -> a > b }
             TokenType.GREATER_THAN_EQUAL -> left.compareNumbers(right, expr.operator) { a, b -> a >= b }
             TokenType.LESS_THAN -> left.compareNumbers(right, expr.operator) { a, b -> a < b }
             TokenType.LESS_THAN_EQUAL -> left.compareNumbers(right, expr.operator) { a, b -> a <= b }
-
-            TokenType.EQUALTO -> {
-                if (left is Number && right is Number) left.toDouble() == right.toDouble()
-                else left == right
-            }
-
-            TokenType.NOT_EQUAL -> {
-                if (left is Number && right is Number) left.toDouble() != right.toDouble()
-                else left != right
-            }
-
-            TokenType.AND -> isTruthy(left) && isTruthy(right) // ug
-            TokenType.OR -> isTruthy(left) || isTruthy(right)  // o
-
+            TokenType.EQUALTO -> left == right
+            TokenType.NOT_EQUAL -> left != right
+            TokenType.AND -> isTruthy(left) && isTruthy(right)
+            TokenType.OR -> isTruthy(left) || isTruthy(right)
             else -> throw RuntimeError("Unsupported binary operator: ${expr.operator.lexeme}", expr.operator.line)
         }
     }
@@ -150,11 +161,31 @@ class Evaluator(private var environment: Environment = Environment()) {
     }
 
     private fun valueToString(value: Any?): String = when (value) {
-        null -> "wala" 
+        null -> "wala"
         true -> "tuod"
         false -> "atik"
         is Double -> if (value % 1 == 0.0) value.toInt().toString() else value.toString()
-        is String -> value 
+        is String -> value
         else -> value.toString()
+    }
+
+    private fun executeCall(stmt: Stmt.Call) {
+        val calleeValue = environment.get(stmt.name.lexeme, stmt.name.line)
+        if (calleeValue !is Stmt.Fun) throw RuntimeError("${stmt.name.lexeme} dili function bai.", stmt.name.line)
+
+        val func = calleeValue
+        if (stmt.arguments.size != func.params.size) {
+            throw RuntimeError(
+                "Gisugo nga ${func.name.lexeme} requires ${func.params.size} args, pero ${stmt.arguments.size} imong gihatag.",
+                stmt.name.line
+            )
+        }
+
+        val localEnv = Environment(environment)
+        func.params.forEachIndexed { i, param ->
+            localEnv.define(param.lexeme, evaluate(stmt.arguments[i]))
+        }
+
+        executeBlock(func.body.statements, localEnv)
     }
 }

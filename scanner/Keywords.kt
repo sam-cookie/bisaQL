@@ -25,8 +25,10 @@ val keywords = mapOf(
     "Samtang" to TokenType.WHILE,
     
     //function
-    "gamiton" to TokenType.GAMITON,
+    "Buhatag" to TokenType.FUNCTION,
     "balik" to TokenType.RETURN,
+    "Tawagi" to TokenType.CALL,
+    "kay" to TokenType.KAY,
 
     "undangi" to TokenType.BREAK,
     "padayoni" to TokenType.CONTINUE,
