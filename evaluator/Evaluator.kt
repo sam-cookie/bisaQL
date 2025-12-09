@@ -11,6 +11,8 @@ class Evaluator(private var environment: Environment = Environment()) {
         // register native function
         environment.define("orasSubong", TimeFunc())
         environment.define("petsaSubong", DateFunc())
+        environment.define("katason", KatasonFunc())
+        environment.define("letter", LetterFunc())
     }
 
     fun executeProgram(program: Stmt.Program) {
@@ -134,6 +136,12 @@ class Evaluator(private var environment: Environment = Environment()) {
         return when (expr.operator.type) {
             TokenType.MINUS -> right.toNumber(expr.operator)
             TokenType.NOT -> !isTruthy(right)
+            TokenType.LENGTH -> {
+                if (right !is String)
+                throw RuntimeError("Ang pag kay para ra sa string!", expr.operator.line)
+                // return (expr.right as String).length.toDouble()
+                right.length.toDouble()
+            }
             else -> throw RuntimeError("Unsupported unary operator.", expr.operator.line)
         }
     }
@@ -162,14 +170,15 @@ class Evaluator(private var environment: Environment = Environment()) {
             }
 
             TokenType.CHAR -> {
-                // left must be string, right must be number
-                if (left !is String)
-                    throw RuntimeError("String dapat sa left side sa 'letter'.", expr.operator.line)
+                if (left !is String) throw RuntimeError("Dili man 'string' ang nasa kaliwa bai.", expr.operator.line)
 
-                val index = right.toNumber(expr.operator).toInt()
+                val index = when (right) {
+                    is Number -> right.toInt()
+                    else -> throw RuntimeError("Dili man 'number' ang nasa tuo bai.", expr.operator.line)
+                }
 
                 if (index < 0 || index >= left.length)
-                    throw RuntimeError("Index gawas sa range sa string.", expr.operator.line)
+                    throw RuntimeError("Index $index out of range for string '$left'.", expr.operator.line)
 
                 return left[index].toString()
             }

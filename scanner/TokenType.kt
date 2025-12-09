@@ -26,8 +26,8 @@ enum class TokenType {
     GAMITON,                           // function
     BALIK,                             // return
     CALL,
-    PARA, HABANG,                       // for
-    LENGTH, CHAR,                       
+    PARA, HABANG,                       // for           
+    LENGTH, CHAR,                     // string functions           
 
     VAR, FUNCTION, RETURN, PRINT, IF, ELSE, WHILE, FOR, BREAK, CONTINUE, TRUE, FALSE, NULL, SUMPAY, KAY,
 

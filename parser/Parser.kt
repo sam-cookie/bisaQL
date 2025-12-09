@@ -43,42 +43,53 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun assignmentStatement(): Stmt {
-        consume(TokenType.USBI, "Dapat magsugod sa 'usbi'")
-        consume(TokenType.ANG, "Dapat naay 'ang'")
-        val name = consume(TokenType.IDENTIFIER, "Dapat naay variable name")
+    consume(TokenType.USBI, "Dapat magsugod sa 'usbi'")
+    consume(TokenType.ANG, "Dapat naay 'ang'")
+    val name = consume(TokenType.IDENTIFIER, "Dapat naay variable name")
 
-        val value: Expr
+    val value: Expr
 
-        if (match(TokenType.HIMUAG)) {
+    when {
+        match(TokenType.HIMUAG) -> {
             value = expression()
-        } 
-        else if (match(TokenType.ADD_ASSIGN)) { // +=
+        }
+        match(TokenType.ADD_ASSIGN) -> { // +=
             val operator = Token(TokenType.PLUS, "+", null, previous().line)
             val increment = expression()
             value = Expr.Binary(Expr.Variable(name), operator, increment)
-        } 
-        else if (match(TokenType.MINUS_ASSIGN)) { // -=
+        }
+        match(TokenType.MINUS_ASSIGN) -> { // -=
             val operator = Token(TokenType.MINUS, "-", null, previous().line)
             val decrement = expression()
             value = Expr.Binary(Expr.Variable(name), operator, decrement)
-        } 
-        else if (match(TokenType.TIMES_ASSIGN)) { // *=
+        }
+        match(TokenType.TIMES_ASSIGN) -> { // *=
             val operator = Token(TokenType.TIMES, "*", null, previous().line)
             val factor = expression()
             value = Expr.Binary(Expr.Variable(name), operator, factor)
-        } 
-        else if (match(TokenType.DIVIDED_ASSIGN)) { // /=
+        }
+        match(TokenType.DIVIDED_ASSIGN) -> { // /=
             val operator = Token(TokenType.DIVIDE, "/", null, previous().line)
             val divisor = expression()
             value = Expr.Binary(Expr.Variable(name), operator, divisor)
-        } 
-        else {
-            throw RuntimeError("Mali nga assignment keyword ang gamit nimo bai: dugangig, kuhaag, piluag, bahinig", peek().line)
         }
+        match(TokenType.SUMPAY) -> { // sumpayig
+            val operator = Token(TokenType.SUMPAY, "sumpayig", null, previous().line)
+            val right = expression()
+            value = Expr.Binary(Expr.Variable(name), operator, right)
+        }
+        else -> {
+            throw RuntimeError(
+                "Mali nga assignment keyword ang gamit nimo bai: dugangig, kuhaag, piluag, bahinig, sumpayig",
+                peek().line
+            )
+        }
+    }
 
         consume(TokenType.PERIOD, "Dapat period sa katapusan")
         return Stmt.Assign(name, value)
     }
+
 
     private fun printStatement(): Stmt {
         consume(TokenType.PRINT, "Dapat magsugod sa 'Ipakita'")
@@ -331,12 +342,45 @@ class Parser(private val tokens: List<Token>) {
         throw RuntimeError("Naay gipaabot nga 'dakos' o 'gamays' human sa 'mas'.", startToken.line)
     }
 
+    private fun postfix(): Expr {
+    var expr = primary()
+
+    while (true) {
+        when {
+            match(TokenType.LENGTH) -> {
+                expr = Expr.Unary(previous(), expr)   // use Unary node
+            }
+
+            match(TokenType.CHAR) -> {
+                val index = expression()
+                expr = Expr.Binary(expr, previous(), index) // use Binary node
+            }
+
+            else -> return expr
+        }
+    }
+}
+
     private fun stringConcat(): Expr {
         var expr = term()
-        while (match(TokenType.SUMPAY)) {
-            val operator = previous()
-            val right = term()
-            expr = Expr.Binary(expr, operator, right)
+        while (true) {
+            when {
+                match(TokenType.SUMPAY) -> { // string concatenation
+                    val operator = previous()
+                    val right = term()
+                    expr = Expr.Binary(expr, operator, right)
+                }
+                match(TokenType.CHAR) -> { // letter at index
+                    val operator = previous()
+                    val indexExpr = term() // the index comes after `letter`
+                    expr = Expr.Binary(expr, operator, indexExpr)
+                }
+                match(TokenType.LENGTH) -> { // length of string
+                    val operator = previous()
+                    expr = Expr.Unary(operator, expr) // unary: only operand is the string
+                }
+                else -> break
+            }
         }
         return expr
     }
